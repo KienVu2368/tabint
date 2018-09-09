@@ -20,11 +20,10 @@ class missing(BaseEDA):
         df_miss = df.isnull().sum()/len(df)*100
         df_miss = df_miss[df_miss > 0]
         df_miss = pd.DataFrame({'column':df_miss.index, 'missing_percent':df_miss.values})
-        sort_desc_inplace(df_miss, 'missing_percent')
-        return cls(df_miss)
+        return cls(sort_desc(df_miss))
         
     def plot(self): 
-        return plot_barh(self.df.sort_values(self.df.columns[1], ascending=True))
+        return plot_barh(self.df)
 
 
 class correlation(BaseEDA):    
@@ -35,10 +34,9 @@ class correlation(BaseEDA):
         corr_df['neg'] = corr_df['corr'] < 0
         corr_df['corr'] = abs(corr_df['corr'])
         corr_df = corr_df[corr_df['column'] != taget]
-        sort_desc_inplace(corr_df, 'corr')
-        return cls(corr_df)
+        return cls(sort_desc(corr_df))
         
-    def plot(self): return plot_barh(self.df.sort_values(self.df.columns[1], ascending=True))
+    def plot(self): return plot_barh(self.df)
 
 
 class histogram(BaseEDA):

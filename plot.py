@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
+from .utils import *
 
 def change_xaxis_pos(top):
     if top:
@@ -11,10 +12,10 @@ def change_xaxis_pos(top):
 
 def plot_barh(df, width = 20, height_ratio = 4):
     change_xaxis_pos(True)
-    df.plot(x = df.columns[0],
-            kind='barh',
-            figsize=(width, df.shape[0]//height_ratio), 
-            legend=False)
+    sort_asc(df).plot(x = df.columns[0],
+                      kind='barh',
+                      figsize=(width, df.shape[0]//height_ratio), 
+                      legend=False)
     change_xaxis_pos(False)
 
 def plot_hist(df,  bins = 20):
