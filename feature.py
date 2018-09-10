@@ -4,10 +4,11 @@ import pandas as pd
 import numpy as np
 from scipy.cluster import hierarchy as hc
 
+
 def aggreate(df, params, by_col, prefix = 'AGG'):
     '''mean, median, prod, sum, std, var, max, min, count, nunique'''
     df_agg = df[list(params.keys())+to_list(by_col)].groupby(by_col).agg(params)
-    df_agg.columns = ['_'.join([prefix.upper(), c[1], c[2].upper()]) for c in df_agg.columns.tolist()]
+    df_agg.columns = ['_'.join([prefix.upper(), c[0], c[1].upper()]) for c in df_agg.columns.tolist()]
     return df_agg.reset_index()
 
 class importance(BaseEDA):
