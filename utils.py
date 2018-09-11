@@ -11,4 +11,14 @@ def sort_asc(df): return df.sort_values(df.columns[1], ascending = True)
 
 def flat_list(l): return [item for sublist in l for item in sublist]
 
-def cat_cols(df): return list(set(df.columns) - set(df._get_numeric_data().columns))
+def get_cons_cats(df, max_n_cat = 30):
+    cons, cats= [], []
+    for name, value in df.items():
+        if value.dtypes.kind == "O": cats.append(name)
+        else:
+            if value.nunique()<=max_n_cat: cats.append(name)
+            else: cons.append(name)
+    return cons, cats
+
+
+def parallel(df): return None

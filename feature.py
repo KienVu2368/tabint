@@ -6,8 +6,9 @@ from scipy.cluster import hierarchy as hc
 
 
 def aggreate(df, params, by_col, prefix = 'AGG'):
-    '''mean, median, prod, sum, std, var, max, min, count, nunique'''
-    df_agg = df[list(params.keys())+to_list(by_col)].groupby(by_col).agg(params)
+    '''mean, median, prod, sum, std, var, max, min, count, nunique, size, nanmedian
+    skew, kurt, iqr'''
+    df_agg = df.groupby(by_col).agg(params) #[list(params.keys())+to_list(by_col)]
     df_agg.columns = ['_'.join([prefix.upper(), c[0], c[1].upper()]) for c in df_agg.columns.tolist()]
     return df_agg.reset_index()
 
