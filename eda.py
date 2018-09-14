@@ -5,12 +5,14 @@ import pandas as pd
 import pdb
 
 class BaseEDA:
-    def __init__(self, df): self.df = df
+    def __init__(self, df): self.df = sort_desc(df)
         
     def __getitem__(self, key): return self.df.__getitem__(key)
     
+    @property
     def top(self, n): return list(self.df.iloc[:,0][:n])
     
+    @property
     def plot(self, df): return None
 
 
@@ -21,9 +23,9 @@ class missing(BaseEDA):
         df_miss = df_miss[df_miss > 0]
         df_miss = pd.DataFrame({'column':df_miss.index, 'missing_percent':df_miss.values})
         return cls(sort_desc(df_miss))
-        
-    def plot(self): 
-        return plot_barh(self.df)
+    
+    @property
+    def plot(self): return plot_barh(self.df)
 
 
 class correlation(BaseEDA):    
@@ -35,7 +37,8 @@ class correlation(BaseEDA):
         corr_df['corr'] = abs(corr_df['corr'])
         corr_df = corr_df[corr_df['column'] != taget]
         return cls(sort_desc(corr_df))
-        
+    
+    @property
     def plot(self): return plot_barh(self.df)
 
 
@@ -61,7 +64,8 @@ class histogram(BaseEDA):
         return result
     
     def __getitem__(self, key): return self.data.__getitem__(key)
-        
+    
+    @property
     def plot(self, bins = None): 
         bins = self.bins if bins is None else bins
         return plot_hist(self.df, bins = bins)
@@ -95,7 +99,8 @@ class KernelDensityEstimation(BaseEDA):
         return result
     
     def __getitem__(self, key): return self.data.__getitem__(key)
-        
+    
+    @property
     def plot(self, bins = None): 
         bins = self.bins if bins is None else bins
         return plot_kde(self.df, self.tg, self.tgt_values, self.cols, gridsize = bins)

@@ -12,12 +12,6 @@ def aggreate(df, params, by_col, prefix = 'AGG'):
     df_agg.columns = ['_'.join([prefix.upper(), c[0], c[1].upper()]) for c in df_agg.columns.tolist()]
     return df_agg.reset_index()
 
-class importance(BaseEDA):
-    @classmethod
-    def from_df(cls, df): return cls(sort_desc(df))
-    
-    def plot(self): return plot_barh(self.df)
-
 
 class dendrogram:
     def __init__(self, df):
@@ -26,6 +20,7 @@ class dendrogram:
         self.z = self.cal_z(df)
         self.result = self.cal_result()
     
+    @property
     def chk_ft(self, n):
         fts = self.result[:n][['col1', 'col2']].values.tolist()
         return flat_list(fts)
@@ -35,14 +30,16 @@ class dendrogram:
         corr = np.round(scipy.stats.spearmanr(df).correlation, 4)
         corr_condensed = hc.distance.squareform(1-corr)
         return hc.linkage(corr_condensed, method='average')
-        
+    
+    @property
     def cal_result(self):
         z2 = [[self.columns[int(i[0])], self.columns[int(i[1])], i[2]] for i in self.z if i[3] == 2]
         result = pd.DataFrame.from_dict({'col1': [i[0] for i in z2],
                                         'col2': [i[1] for i in z2],
                                         'dist': [i[2] for i in z2]})
         return result
-        
+    
+    @property
     def plot(self):
         fig = plt.figure(figsize=(10,self.df.shape[1]//2.5))
         dendrogram = hc.dendrogram(self.z, 
