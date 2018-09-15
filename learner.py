@@ -2,9 +2,8 @@ import pandas as pd
 import numpy as np
 from .eda import *
 from .plot import *
-import lightgbm
-from lightgbm import LGBMClassifier
-import cPickle as pickle
+import lightgbm as lgb
+import pickle
 
 class BaseLearner():
     def __init__(self): None
@@ -30,24 +29,36 @@ class BaseLearner():
     def interpretation(self): None
 
 
-class importance(BaseEDA):
-    @property
-    def plot(self): return plot_barh(self.df)
+class LGBLearner():
+    def __init__(self, dataset, fn = 'model.pkl', callbacks = None):
+        self.ds = dataset
+        self.fn = fn
+        self.md = None
+        self.callbacks = callbacks
 
+    def fit(self, params, ctn = False, fn = None, save = True, **kargs):
+        if ctn: self.load()
+        self.params = params
+        self.md = lgb.train(params = self.params,
+                            train_set = self.ds.lgb_trn,
+                            valid_sets = self.ds.lgb_val,
+                            init_model = self.md,
+                            callbacks = self.callbacks,
+                            **kargs)
+        
+        if save: self.save()
+    
+    def predict_test_set(self, **kargs): 
+        return None if self.ds.x_tst is None else self.md.predict(self.ds.lgb_tst, **kargs)
+    
+    def predict(self, **kargs): return self.md.predict(**kargs)
 
-class lgbm_learner(BaseLearner):
-    def __init__(self): None
+    def load(self): 
+        with open(self.fn, 'rb') as fin: self.md = pickle.load(fin)
+        
+    def save(self): 
+        with open(self.fn, 'wb') as fout: pickle.dump(self.md, fout)
 
 
 class interpretation():
     def __init__(self): None
-
-
-class Callback:
-    def on_train_begin(self): pass
-    def on_batch_begin(self): pass
-    def on_phase_begin(self): pass
-    def on_epoch_end(self, metrics): pass
-    def on_phase_end(self): pass
-    def on_batch_end(self, metrics): pass
-    def on_train_end(self): pass
