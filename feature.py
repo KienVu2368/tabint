@@ -17,10 +17,10 @@ def aggreate(df, params, by_col, prefix = 'AGG'):
 
 
 class dendogram:
-    def __init__(self, z, ddg_df, columns):
+    def __init__(self, z, result, cols):
         self.z = z
-        self.ddg_df = ddg_df
-        self.columns = columns
+        self.result = result
+        self.cols = cols
     
     def chk_ft(self, n):
         fts = self.ddg_df[:n][['col1', 'col2']].values.tolist()
@@ -28,10 +28,10 @@ class dendogram:
     
     @classmethod
     def from_df(cls, df):
-        columns = df.columns
+        cols = df.columns
         z = cls.cal_z(df)
-        result = cls.cal_result(z, columns)
-        return cls(z, result, columns)
+        result = cls.cal_result(z = z , cols = cols)
+        return cls(z, result, cols)
     
     @staticmethod
     def cal_z(df):
@@ -41,19 +41,21 @@ class dendogram:
         return hc.linkage(corr_condensed, method='average')
     
     @staticmethod
-    def cal_result(z, col):
-        z2 = [[col[int(i[0])], col[int(i[1])], i[2]] for i in z if i[3] == 2]
-        result = pd.DataFrame.from_dict({'col1': [i[0] for i in z2],
-                                         'col2': [i[1] for i in z2],
-                                         'dist': [i[2] for i in z2]})
+    def get_name(col, i): return '---' if int(i) >= len(col) else col[int(i)]
+    
+    @classmethod
+    def cal_result(cls, z, cols):
+        result = pd.DataFrame.from_dict({'col1': [cls.get_name(cols, i[0]) for i in z],
+                                         'col2': [cls.get_name(cols, i[1]) for i in z],
+                                         'dist': [i[2] for i in z]})
         return result
     
     def plot(self):
-        plt.figure(figsize=(10,max(self.ddg_df.shape[0], 5)))
+        plt.figure(figsize=(10,max(self.z.shape[0]//2.6, 5)))
         hc.dendrogram(self.z, 
-                       labels=self.columns, 
-                       orientation='left', 
-                       leaf_font_size=16)
+                      labels=self.cols, 
+                      orientation='left', 
+                      leaf_font_size=16)
         plt.show()
 
 
@@ -62,7 +64,7 @@ class importance():
         self.I = sort_desc(impt_df)
     
     @classmethod
-    def from_LGB_learner(cls, learner, col_group):
+    def from_LGBLearner(cls, learner, col_group):
         '''
         http://explained.ai/rf-importance/index.html
         '''
@@ -76,4 +78,6 @@ class importance():
             ft.append(' & '.join(to_list(cols)))
         return cls(pd.DataFrame.from_dict({'Feature': ft, 'Importance': imp}))
 
-    def plot(self): plot_barh(self.I, 10)
+    def top(self, n): return [col.split(' & ') for col in self.I.Feature[:n]]
+
+    def plot(self, **kagrs): plot_barh(self.I, **kagrs)

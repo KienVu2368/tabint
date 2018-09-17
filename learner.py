@@ -36,12 +36,12 @@ class LGBLearner():
         self.md = None
         self.callbacks = callbacks
 
-    def fit(self, params, ctn = False, fn = None, save = True, **kargs):
+    def fit(self, params, ctn = False, save = True, **kargs):
         if ctn: self.load()
         self.params = params
         self.md = lgb.train(params = self.params,
                             train_set = self.ds.lgb_trn,
-                            valid_sets = self.ds.lgb_val,
+                            valid_sets = [self.ds.lgb_trn, self.ds.lgb_val], #to appear both train and valid metric
                             init_model = self.md,
                             callbacks = self.callbacks,
                             **kargs)
@@ -58,7 +58,3 @@ class LGBLearner():
         
     def save(self): 
         with open(self.fn, 'wb') as fout: pickle.dump(self.md, fout)
-
-
-class interpretation():
-    def __init__(self): None
