@@ -10,12 +10,12 @@ class TBDataset():
         self.x_tst = x_tst
 
     @classmethod
-    def sklear_split(df, y_df, ratio = 0.2, x_tst = None, **kargs):
+    def sklearn_split(cls, df, y_df, ratio = 0.2, x_tst = None, **kargs):
         x_trn, x_val, y_trn, y_val = train_test_split(df, y_df, test_size=ratio, stratify = y_df)
         return cls(x_trn, x_val, y_trn, y_val, x_tst)
 
     @classmethod
-    def tb_split(df, y_df, x_tst, pct = 2, ratio = 0.2, **kargs):
+    def tb_split(cls, df, y_df, x_tst, pct = 2, ratio = 0.2, **kargs):
         _, cats = get_cons_cats(df)
         
         tst_key = x_tst[cats].drop_duplicates().values
@@ -58,9 +58,4 @@ class LGBDataset(TBDataset):
         self.lgb_trn = lgb.Dataset(x_trn, y_trn)
         self.lgb_val = lgb.Dataset(x_val, y_val, free_raw_data=False, reference=self.lgb_trn)
         self.lgb_tst = None if x_tst is None else lgb.Dataset(x_tst)
-    
-    def val_permutation(self, cols):
-        cols = to_list(cols)
-        df = self.lgb_val.data.copy()
-        for col in cols: df[col] = np.random.permutation(df[col])
-        return df
+        self.x_val = x_val

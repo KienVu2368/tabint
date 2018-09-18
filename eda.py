@@ -3,6 +3,8 @@ from .plot import *
 import numpy as np
 import pandas as pd
 import pdb
+from pdpbox import pdp
+from plotnine import *
 
 class BaseEDA:
     def __init__(self, df): self.df = sort_desc(df)
@@ -98,3 +100,7 @@ class KernelDensityEstimation(BaseEDA):
     def plot(self, bins = None): 
         bins = self.bins if bins is None else bins
         return plot_kde(self.df, self.tg, self.tgt_values, self.cols, gridsize = bins)
+
+
+class partial_dependence():
+    None

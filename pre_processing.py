@@ -3,6 +3,7 @@ from fastai.imports import *
 from fastai.structured import *
 from .utils import *
 
+#todo use dask, numba and do things in parallel
 
 def tabular_proc(df, **kargs):
     df = df.copy()
