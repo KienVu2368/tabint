@@ -34,6 +34,7 @@ class LGBLearner():
         self.ds = dataset
         self.fn = fn
         self.md = None
+        self.classes_ = 1 #??
         self.callbacks = callbacks
 
     def fit(self, params, ctn = False, save = True, **kargs):
@@ -51,7 +52,7 @@ class LGBLearner():
     def predict_test_set(self, **kargs): 
         return None if self.ds.x_tst is None else self.md.predict(self.ds.lgb_tst, **kargs)
     
-    def predict(self, **kargs): return self.md.predict(**kargs)
+    def predict(self, df, **kargs): return self.md.predict(df, **kargs)
 
     def load(self): 
         with open(self.fn, 'rb') as fin: self.md = pickle.load(fin)

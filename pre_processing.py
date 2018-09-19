@@ -4,6 +4,7 @@ from fastai.structured import *
 from .utils import *
 
 #todo use dask, numba and do things in parallel
+#immutation https://www.kaggle.com/dansbecker/handling-missing-values
 
 def tabular_proc(df, **kargs):
     df = df.copy()

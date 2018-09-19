@@ -48,10 +48,11 @@ class TBDataset():
         for col in cols: df[col] = np.random.permutation(df[col])
         return df
 
-    def filter_column(keep_ft):
+    def filter_column(self, keep_ft):
         self.x_trn = self.x_trn[keep_ft]
         self.x_val = self.x_val[keep_ft]
         if self.x_tst is not None: self.x_tst = self.x_tst[keep_ft]
+
 
 class LGBDataset(TBDataset):
     def __init__(self, x_trn, y_trn, x_val, y_val, x_tst = None):
@@ -64,7 +65,7 @@ class LGBDataset(TBDataset):
         self.lgb_tst = None if x_tst is None else lgb.Dataset(x_tst)
         self.x_val = x_val
 
-    def filter_column(keep_ft):
+    def filter_column(self, keep_ft):
         self.lgb_trn = lgb.Dataset(self.lgb_trn.data[keep_ft], self.lgb_trn.label)
         self.lgb_val = lgb.Dataset(self.lgb_val.data[keep_ft], self.lgb_val.label, 
                                    free_raw_data=False, reference=self.lgb_trn)
