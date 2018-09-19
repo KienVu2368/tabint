@@ -34,7 +34,6 @@ class LGBLearner():
         self.ds = dataset
         self.fn = fn
         self.md = None
-        self.classes_ = 1 #??
         self.callbacks = callbacks
 
     def fit(self, params, ctn = False, save = True, **kargs):
