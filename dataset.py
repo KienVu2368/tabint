@@ -5,7 +5,7 @@ import lightgbm as lgb
 
 #imbalance data???
 
-class TBDataset():
+class TBDataset:
     def __init__(self, x_trn, y_trn, x_val, y_val, x_tst = None):
         self.x_trn, self.y_trn = x_trn, y_trn
         self.x_val, self.y_val = x_val, y_val
@@ -50,26 +50,27 @@ class TBDataset():
         for col in cols: df[col] = np.random.permutation(df[col])
         return df
 
-    def filter_column(self, keep_ft):
-        self.x_trn = self.x_trn[keep_ft]
-        self.x_val = self.x_val[keep_ft]
-        if self.x_tst is not None: self.x_tst = self.x_tst[keep_ft]
+    def add(self, col, f): 
+        for df in [self.x_trn, self.x_val, self.x_tst]:
+            if df is not None: df[col] = f(df)
 
+    def trn_drop(self, col): return self.x_trn.drop(col, axis = 1)
 
-class LGBDataset(TBDataset):
-    def __init__(self, x_trn, y_trn, x_val, y_val, x_tst = None):
-        '''
-        https://lightgbm.readthedocs.io/en/latest/Python-API.html#data-structure-api
-        https://lightgbm.readthedocs.io/en/latest/Python-Intro.html#data-interface
-        '''
-        self.lgb_trn = lgb.Dataset(x_trn, y_trn)
-        self.lgb_val = lgb.Dataset(x_val, y_val, free_raw_data=False, reference=self.lgb_trn)
-        self.lgb_tst = None if x_tst is None else lgb.Dataset(x_tst)
-        self.x_val = x_val
+    def sample(self, tp = 'trn', ratio = 0.3):
+        df, y_df = {'trn': (self.x_trn, self.y_trn), 'val': (self.x_val, self.y_val), 'tst': self.tst}[tp]
+        length = int(df.shape[0]*ratio)
+        mask = np.concatenate([np.full(length, 1, dtype=np.bool), np.full(df.shape[0] - length, 1, dtype=np.bool)])
+        np.random.shuffle(mask)
+        return df[mask], y_df[mask]
 
-    def filter_column(self, keep_ft):
-        self.lgb_trn = lgb.Dataset(self.lgb_trn.data[keep_ft], self.lgb_trn.label)
-        self.lgb_val = lgb.Dataset(self.lgb_val.data[keep_ft], self.lgb_val.label, 
-                                   free_raw_data=False, reference=self.lgb_trn)
-        if self.lgb_tst is not None: self.lgb_tst = lgb.Dataset(self.lgb_tst.data[keep_ft])
-        self.x_val = self.lgb_val.data[keep_ft]
+    def keep(self, col):
+        self.x_trn = self.x_trn[col]
+        self.x_val = self.x_val[col]
+        if self.x_tst is not None: self.x_tst = self.x_tst[col]
+
+    def drop_inplace(self, col):
+        self.x_trn.drop(col, axis=1, inplace = True)
+        self.x_val.drop(col, axis=1, inplace = True)
+        if self.x_tst is not None: self.x_tst.drop(col, axis=1, inplace = True)
+
+    def trn_n_val(self): return self.x_trn, self.y_trn, self.x_val, self.y_val

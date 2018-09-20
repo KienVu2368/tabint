@@ -61,25 +61,31 @@ class dendogram:
                       leaf_font_size=16)
         plt.show()
 
+    def group_cols(self, grp):
+        return grp + [i for i in self.cols if i not in flat_list(grp)]
 
-class importance():
+
+class importance:
     def __init__(self, impt_df):
         self.I = sort_desc(impt_df)
     
     @classmethod
-    def from_LGBLearner(cls, learner, col_group):
+    def from_Learner(cls, learner, ds,  group_cols):
         '''
         http://explained.ai/rf-importance/index.html
         '''
-        y_pred = learner.predict(data = learner.ds.lgb_val.data)
-        baseline = roc_auc_score(learner.ds.lgb_val.label, y_pred)
-        imp, ft = [], []
-        for cols in col_group:
-            y_pred_permut = learner.predict(data = learner.ds.val_permutation(cols))
-            permut_score = roc_auc_score(learner.ds.lgb_val.label, y_pred_permut)
-            imp.append(baseline - permut_score)
-            ft.append(' & '.join(to_list(cols)))
-        return cls(pd.DataFrame.from_dict({'Feature': ft, 'Importance': imp}))
+        y_pred = learner.predict(ds.x_val)
+        baseline = roc_auc_score(ds.y_val, y_pred)        
+        I = pd.DataFrame.from_dict({'Feature': [' & '.join(to_list(cols)) for cols in group_cols]})
+        I['Importance'] = I.apply(cls.score, axis = 1, learner = learner, ds = ds, baseline = baseline)
+        return cls(I)
+            
+    @staticmethod
+    def score(x, learner, ds, baseline):
+        cols = x[0].split(' & ')
+        y_pred_permut = learner.predict(ds.val_permutation(cols))
+        permut_score = roc_auc_score(ds.y_val, y_pred_permut)
+        return baseline - permut_score
 
     def top(self, n): return [col.split(' & ') for col in self.I.Feature[:n]]
 

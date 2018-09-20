@@ -2,13 +2,16 @@ import pandas as pd
 import numpy as np
 from .eda import *
 from .plot import *
+from .utils import *
 import lightgbm as lgb
 import pickle
 
 
 ##psedou labeling??
+##function do drop and check feature
+##time dependency check https://youtu.be/3jl2h9hSRvc?t=48m50s
 
-class BaseLearner():
+class BaseLearner:
     def __init__(self): None
         #model
         #data
@@ -19,43 +22,39 @@ class BaseLearner():
     def fit(self): None
 
     def predict(self): None
-    
-    def param_find(self): None
-    
-    @property
-    def summary(self): None
 
     def load(self): None
         
     def save(self): None
 
-    def interpretation(self): None
 
-
-class LGBLearner():
-    def __init__(self, dataset, fn = 'model.pkl'):
-        self.ds = dataset
+class LGBLearner:
+    def __init__(self, fn = 'LGBModel.pkl'):
         self.fn = fn
+        self.md = None
 
-    def fit(self, params, ctn = False, save = True, **kargs):
-        if ctn: self.load()
-        self.params = params
-        self.md = lgb.train(params = self.params,
-                            train_set = self.ds.lgb_trn,
-                            valid_sets = [self.ds.lgb_trn, self.ds.lgb_val], #to appear both train and valid metric
-                            init_model = self.md,
-                            **kargs)
+    def fit(self, params, x_trn, y_trn, x_val, y_val, ctn = False, save = True, **kargs):
+        if ctn: self.load() else: self.md = None 
+        lgb_trn, lgb_val = self.build_ds(x_trn, y_trn, x_val, y_val)
+        self.md = lgb.train(params = params,
+                            train_set = lgb_trn,
+                            valid_sets = [lgb_trn, lgb_val],
+                            init_model = self.md, **kargs)
         
         if save: self.save()
     
-    def predict_test_set(self, **kargs): 
-        return None if self.ds.x_tst is None else self.md.predict(self.ds.lgb_tst, **kargs)
+    @staticmethod
+    def build_ds(x_trn, y_trn, x_val, y_val):
+        lgb_trn = lgb.Dataset(x_trn, y_trn)
+        lgb_val = lgb.Dataset(x_val, y_val, free_raw_data=False, reference=lgb_trn)
+        return lgb_trn, lgb_val
     
     def predict(self, df, **kargs): return self.md.predict(df, **kargs)
 
     def load(self): 
         with open(self.fn, 'rb') as fin: self.md = pickle.load(fin)
         
-    def save(self): 
-        with open(self.fn, 'wb') as fout: pickle.dump(self.md, fout)
+    def save(self, fn = None):
+        fn = isNone(fn, self.fn)
+        with open(fn, 'wb') as fout: pickle.dump(self.md, fout)
 

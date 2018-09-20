@@ -2,13 +2,14 @@ import pdpbox
 from pdpbox import pdp, info_plots
 from .learner import *
 
-#pdp plot
+#confidence base on tree variance
 #Accumulated Local Effect plots 
 #https://christophm.github.io/interpretable-ml-book
 #https://github.com/slundberg/shap
+#waterfall chart for tree interpreter
 
 
-class PartialDependence():
+class PartialDependence:
     def __init__(self, md, df, features, target):
         self.md = md
         self.df = df
@@ -17,22 +18,22 @@ class PartialDependence():
         self.summary = {}
         
     @classmethod    
-    def from_LGBLearner(cls, learner):
-        df = dataset.lgb_trn.data.copy()
+    def from_Learner(cls, learner, ds):
+        df = ds.x_trn.copy()
         features = df.columns
         
-        if len(dataset.lgb_trn.label.shape) == 1:
-            df['target'] = dataset.lgb_trn.label
+        if len(ds.y_trn.shape) == 1:
+            df['target'] = ds.y_trn
             target = ['target']
         else:
             target = []
-            for i in range(dataset.lgb_trn.label.shape[1]):
+            for i in range(ds.y_trn.shape.shape[1]):
                 tgt_name = 'target' + str(i)
-                df[tgt_name] = dataset.lgb_trn.label.iloc[:,i]
+                df[tgt_name] = ds.y_trn.iloc[:,i]
                 target.append(tgt_name)
         return cls(learner.md, df, features, target)
     
-    def info_target(self, var, sample = 10000, target = None, grid_type = 'percentile', **kargs):        
+    def info_target(self, var, sample = 10000, target = None, grid_type = 'percentile', **kargs):
         fig, axes, self.summary['info_target'] = info_plots.target_plot(
                 df=self.sample(sample), feature=var, feature_name=var, 
                 target=isNone(target, self.target), grid_type = grid_type, **kargs)
@@ -41,7 +42,6 @@ class PartialDependence():
         plt.show()    
     
     def info_actual(self, var, sample = 10000, predict_kwds = {}, which_classes=None, **kargs):
-        
         fig, axes, self.summary['info_actual'] = info_plots.actual_plot(
                 model=self.md, 
                 X=self.sample(sample), 
@@ -54,7 +54,6 @@ class PartialDependence():
                 center = True, plot_lines=True, frac_to_plot=100, plot_pts_dist=True, 
                 cluster=True, n_cluster_centers=10, cluster_method='accurate',
                 which_classes= None, **pdp_kargs):
-        
         ft_plot = pdp.pdp_isolate(
                 model=self.md, dataset=self.sample(sample), 
                 model_features = self.features, feature=var,
@@ -69,7 +68,6 @@ class PartialDependence():
         
     def target_interact(self, var, var_name = None, target=None,
                         sample = 10000, show_outliers=True, **kargs):
-    
         fig, axes, self.summary['target_interact'] = info_plots.target_plot_interact(
                 df=self.sample(sample), target=isNone(target, self.target),
                 features= var, feature_names = isNone(var_name, var),
@@ -78,7 +76,6 @@ class PartialDependence():
         
     def actual_interact(self, var, var_name = None, 
                         sample = 10000, which_classes = None, show_outliers=True, **kargs):
-    
         fig, axes, self.summary['actual_interact'] = info_plots.actual_plot_interact(
                 model = self.md, X = self.sample(sample),
                 features=var, feature_names=isNone(var_name, var), 
@@ -86,8 +83,7 @@ class PartialDependence():
         plt.show()
         
     def pdp_interact(self, var, var_name=None, sample = 10000, which_classes = None,
-                     num_grid_points=[10, 10], plot_types = None):
-        
+                     num_grid_points=[10, 10], plot_types = None):        
         ft_plot = pdp.pdp_interact(
                 model=self.md, dataset=self.sample(sample), 
                 model_features=self.features, features=var, 
