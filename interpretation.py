@@ -35,7 +35,7 @@ class PartialDependence():
     def info_target(self, var, sample = 10000, target = None, grid_type = 'percentile', **kargs):        
         fig, axes, self.summary['info_target'] = info_plots.target_plot(
                 df=self.sample(sample), feature=var, feature_name=var, 
-                target=isnone(target, self.target), grid_type = grid_type, **kargs)
+                target=isNone(target, self.target), grid_type = grid_type, **kargs)
 
         _ = axes['bar_ax'].set_xticklabels(self.summary['info_target'].display_column.values)
         plt.show()    
@@ -71,8 +71,8 @@ class PartialDependence():
                         sample = 10000, show_outliers=True, **kargs):
     
         fig, axes, self.summary['target_interact'] = info_plots.target_plot_interact(
-                df=self.sample(sample), target=isnone(target, self.target),
-                features= var, feature_names = isnone(var_name, var),
+                df=self.sample(sample), target=isNone(target, self.target),
+                features= var, feature_names = isNone(var_name, var),
                 show_outliers=show_outliers, **kargs)
         plt.show()
         
@@ -81,7 +81,7 @@ class PartialDependence():
     
         fig, axes, self.summary['actual_interact'] = info_plots.actual_plot_interact(
                 model = self.md, X = self.sample(sample),
-                features=var, feature_names=isnone(var_name, var), 
+                features=var, feature_names=isNone(var_name, var), 
                 which_classes=which_classes, show_outliers= show_outliers, **kargs)
         plt.show()
         
@@ -97,7 +97,7 @@ class PartialDependence():
         for plot_type in plot_types:
             figs, ax = pdp.pdp_interact_plot(
                 pdp_interact_out = ft_plot, 
-                feature_names = isnone(var_name, var), 
+                feature_names = isNone(var_name, var), 
                 plot_type= plot_type, plot_pdp=True, which_classes=which_classes)
         plt.show()
     

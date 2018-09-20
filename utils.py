@@ -33,4 +33,4 @@ def get_cons_cats(df, max_n_cat = 30):
     return cons, cats
 
 
-def isnone(v, x): return x if v is None else v
+def isNone(v, x): return x if v is None else v
