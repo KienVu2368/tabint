@@ -5,6 +5,9 @@ from .plot import *
 import lightgbm as lgb
 import pickle
 
+
+##psedou labeling??
+
 class BaseLearner():
     def __init__(self): None
         #model
@@ -30,11 +33,9 @@ class BaseLearner():
 
 
 class LGBLearner():
-    def __init__(self, dataset, fn = 'model.pkl', callbacks = None):
+    def __init__(self, dataset, fn = 'model.pkl'):
         self.ds = dataset
         self.fn = fn
-        self.md = None
-        self.callbacks = callbacks
 
     def fit(self, params, ctn = False, save = True, **kargs):
         if ctn: self.load()
@@ -43,7 +44,6 @@ class LGBLearner():
                             train_set = self.ds.lgb_trn,
                             valid_sets = [self.ds.lgb_trn, self.ds.lgb_val], #to appear both train and valid metric
                             init_model = self.md,
-                            callbacks = self.callbacks,
                             **kargs)
         
         if save: self.save()

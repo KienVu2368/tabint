@@ -3,6 +3,8 @@ from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 
 
+#imbalance data???
+
 class TBDataset():
     def __init__(self, x_trn, y_trn, x_val, y_val, x_tst = None):
         self.x_trn, self.y_trn = x_trn, y_trn
@@ -10,12 +12,12 @@ class TBDataset():
         self.x_tst = x_tst
 
     @classmethod
-    def sklearn_split(cls, df, y_df, ratio = 0.2, x_tst = None, **kargs):
+    def from_SklearnSplit(cls, df, y_df, ratio = 0.2, x_tst = None, **kargs):
         x_trn, x_val, y_trn, y_val = train_test_split(df, y_df, test_size=ratio, stratify = y_df)
         return cls(x_trn, y_trn, x_val, y_val, x_tst)
 
     @classmethod
-    def tb_split(cls, df, y_df, x_tst, pct = 2, ratio = 0.2, **kargs):
+    def from_TBSplit(cls, df, y_df, x_tst, pct = 2, ratio = 0.2, **kargs):
         _, cats = get_cons_cats(df)
         
         tst_key = x_tst[cats].drop_duplicates().values

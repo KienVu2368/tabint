@@ -1,5 +1,6 @@
 from .utils import *
 from .eda import *
+from .learner import *
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,8 +10,10 @@ from sklearn.metrics import roc_auc_score
 
 
 def aggreate(df, params, by_col, prefix = 'AGG'):
-    '''mean, median, prod, sum, std, var, max, min, count, nunique, size, nanmedian
-    skew, kurt, iqr'''
+    '''
+    mean, median, prod, sum, std, var, max, min, count, nunique, size, nanmedian
+    skew, kurt, iqr
+    '''
     df_agg = df.groupby(by_col).agg(params) #[list(params.keys())+to_list(by_col)]
     df_agg.columns = ['_'.join([prefix.upper(), c[0], c[1].upper()]) for c in df_agg.columns.tolist()]
     return df_agg.reset_index()
