@@ -1,12 +1,11 @@
 import pdpbox
 from pdpbox import pdp, info_plots
 from .learner import *
-
+import shap
 
 #confidence base on tree variance
 #Accumulated Local Effect plots 
 #https://christophm.github.io/interpretable-ml-book
-#https://github.com/slundberg/shap
 #waterfall chart for tree interpreter
 
 class TreeConfidence:
