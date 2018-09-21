@@ -31,7 +31,6 @@ class BaseLearner:
 class LGBLearner:
     def __init__(self, fn = 'LGBModel.pkl'):
         self.fn = fn
-        self.md = None
 
     def fit(self, params, x_trn, y_trn, x_val, y_val, ctn = False, save = True, **kargs):
         if ctn: self.load() else: self.md = None 

@@ -70,21 +70,21 @@ class importance:
         self.I = sort_desc(impt_df)
     
     @classmethod
-    def from_Learner(cls, learner, ds,  group_cols):
+    def from_Learner(cls, learner, ds,  group_cols. score = roc_auc_score):
         '''
         http://explained.ai/rf-importance/index.html
         '''
         y_pred = learner.predict(ds.x_val)
-        baseline = roc_auc_score(ds.y_val, y_pred)        
+        baseline = score(ds.y_val, y_pred)        
         I = pd.DataFrame.from_dict({'Feature': [' & '.join(to_list(cols)) for cols in group_cols]})
-        I['Importance'] = I.apply(cls.score, axis = 1, learner = learner, ds = ds, baseline = baseline)
+        I['Importance'] = I.apply(cls.cal_impt, axis = 1, learner = learner, ds = ds, baseline = baseline, score = score)
         return cls(I)
             
     @staticmethod
-    def score(x, learner, ds, baseline):
+    def cal_impt(x, learner, ds, baseline, score):
         cols = x[0].split(' & ')
         y_pred_permut = learner.predict(ds.val_permutation(cols))
-        permut_score = roc_auc_score(ds.y_val, y_pred_permut)
+        permut_score = score(ds.y_val, y_pred_permut)
         return baseline - permut_score
 
     def top(self, n): return [col.split(' & ') for col in self.I.Feature[:n]]
