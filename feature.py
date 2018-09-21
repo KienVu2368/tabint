@@ -19,7 +19,7 @@ def aggreate(df, params, by_col, prefix = 'AGG'):
     return df_agg.reset_index()
 
 
-class dendogram:
+class Dendogram:
     def __init__(self, z, result, cols):
         self.z = z
         self.result = result
@@ -65,12 +65,12 @@ class dendogram:
         return grp + [i for i in self.cols if i not in flat_list(grp)]
 
 
-class importance:
+class Importance:
     def __init__(self, impt_df):
         self.I = sort_desc(impt_df)
     
     @classmethod
-    def from_Learner(cls, learner, ds,  group_cols. score = roc_auc_score):
+    def from_Learner(cls, learner, ds,  group_cols, score = roc_auc_score):
         '''
         http://explained.ai/rf-importance/index.html
         '''

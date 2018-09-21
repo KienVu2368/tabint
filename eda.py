@@ -16,7 +16,7 @@ class BaseEDA:
     def plot(self, df): return None
 
 
-class missing(BaseEDA):    
+class Missing(BaseEDA):    
     @classmethod
     def from_df(cls, df):
         df_miss = df.isnull().sum()/len(df)*100
@@ -27,7 +27,7 @@ class missing(BaseEDA):
     def plot(self): return plot_barh(self.df)
 
 
-class correlation(BaseEDA):    
+class Correlation(BaseEDA):    
     @classmethod
     def from_df(cls, df, taget):
         correlations = df.corr()[taget]
@@ -40,7 +40,7 @@ class correlation(BaseEDA):
     def plot(self): return plot_barh(self.df)
 
 
-class histogram(BaseEDA):
+class Histogram(BaseEDA):
     def __init__(self, df, bins): 
         self.df = df
         self.data = self.cal_hist(df, bins)
@@ -100,7 +100,3 @@ class KernelDensityEstimation(BaseEDA):
     def plot(self, bins = None): 
         bins = self.bins if bins is None else bins
         return plot_kde(self.df, self.tg, self.tgt_values, self.cols, gridsize = bins)
-
-
-class partial_dependence():
-    None

@@ -33,7 +33,8 @@ class LGBLearner:
         self.fn = fn
 
     def fit(self, params, x_trn, y_trn, x_val, y_val, ctn = False, save = True, **kargs):
-        if ctn: self.load() else: self.md = None 
+        self.md = None 
+        if ctn: self.load()
         lgb_trn, lgb_val = self.build_ds(x_trn, y_trn, x_val, y_val)
         self.md = lgb.train(params = params,
                             train_set = lgb_trn,

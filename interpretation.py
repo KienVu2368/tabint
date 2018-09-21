@@ -2,12 +2,16 @@ import pdpbox
 from pdpbox import pdp, info_plots
 from .learner import *
 
+
 #confidence base on tree variance
 #Accumulated Local Effect plots 
 #https://christophm.github.io/interpretable-ml-book
 #https://github.com/slundberg/shap
 #waterfall chart for tree interpreter
 
+class TreeConfidence:
+    def __init__(self):
+        None
 
 class PartialDependence:
     def __init__(self, md, df, features, target):
@@ -98,3 +102,41 @@ class PartialDependence:
         plt.show()
     
     def sample(self, sample): return self.df if sample is None else self.df.sample(sample)
+
+
+class SHAP:
+    def __init__(self, explainer, shap_values, df, features):
+        shap.initjs()
+        self.explainer = explainer
+        self.shap_values = shap_values
+        self.df, self.features = df, features        
+        
+    @classmethod
+    def from_Tree(cls, learner, ds, sample = 10000):
+        df = ds.x_trn.sample(sample).astype(np.float32)
+        explainer = shap.TreeExplainer(learner.md)
+        shap_values = explainer.shap_values(ds_sample)
+        features = df.columns
+        return cls(explainer, shap_values, df, features)    
+    
+    def force_plot_one(self, loc):
+        return shap.force_plot(self.explainer.expected_value, self.shap_values[loc], features = self.features)
+    
+    def force_plot_many(self, loc, sample = 10000):
+        return shap.force_plot(self.explainer.expected_value, self.shap_values[:loc,:], features = self.features)
+    
+    def summary_plot(self, plot_type = 'violin', alpha=0.01):
+        """violin, layered_violin, dot"""
+        return shap.summary_plot(self.shap_values, self.df, alpha=alpha, plot_type = plot_type)
+        
+    def importance_plot(self):
+        return shap.summary_plot(self.shap_values, self.df, plot_type="bar")
+        
+    def interaction_plot(self, sample = 100):
+        shap_interaction_values = explainer.shap_interaction_values(self.df.sample(sample))
+        return shap.summary_plot(shap_interaction_values, features = self.features)
+    
+    def dependence_plot(self, col1, col2, alpha = 0.3, dot_size=50):
+        return shap.dependence_plot(ind = col1, interaction_index = col2, 
+                                    shap_values = self.shap_values, features = self.df, 
+                                    alpha = alpha, dot_size=dot_size)
