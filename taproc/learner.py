@@ -32,14 +32,14 @@ class LGBLearner:
     def __init__(self, fn = 'LGBModel.pkl'):
         self.fn = fn
 
-    def fit(self, params, x_trn, y_trn, x_val, y_val, ctn = False, save = True, **kargs):
+    def fit(self, params, x_trn, y_trn, x_val, y_val, ctn = False, save = True, verbose_eval = 100, **kargs):
         self.md = None 
         if ctn: self.load()
         lgb_trn, lgb_val = self.build_ds(x_trn, y_trn, x_val, y_val)
         self.md = lgb.train(params = params,
                             train_set = lgb_trn,
                             valid_sets = [lgb_trn, lgb_val],
-                            init_model = self.md, **kargs)
+                            init_model = self.md, verbose_eval = verbose_eval, **kargs)
         
         if save: self.save()
     
