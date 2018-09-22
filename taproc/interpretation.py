@@ -1,12 +1,16 @@
 import pdpbox
 from pdpbox import pdp, info_plots
 from .learner import *
+from matplotlib.colors import LinearSegmentedColormap
 import shap
+import shap.plots.colors as cl
+
 
 #confidence base on tree variance
 #Accumulated Local Effect plots 
 #https://christophm.github.io/interpretable-ml-book
 #waterfall chart for tree interpreter
+
 
 class TreeConfidence:
     def __init__(self):
@@ -103,36 +107,43 @@ class PartialDependence:
     def sample(self, sample): return self.df if sample is None else self.df.sample(sample)
 
 
+
+#harcode to change shap color
+green_blue = LinearSegmentedColormap.from_list('custom blue', [(0, '#ffff00'), (1, '#002266')], N=256)
+cl.red_blue = green_blue
+cl.red_blue_solid = green_blue
+
 class SHAP:
+    
     def __init__(self, explainer, shap_values, df, features):
         shap.initjs()
         self.explainer = explainer
         self.shap_values = shap_values
         self.df, self.features = df, features        
-        
+    
     @classmethod
     def from_Tree(cls, learner, ds, sample = 10000):
         df = ds.x_trn.sample(sample).astype(np.float32)
         explainer = shap.TreeExplainer(learner.md)
-        shap_values = explainer.shap_values(ds_sample)
+        shap_values = explainer.shap_values(df)
         features = df.columns
         return cls(explainer, shap_values, df, features)    
     
-    def force_plot_one(self, loc):
-        return shap.force_plot(self.explainer.expected_value, self.shap_values[loc], features = self.features)
+    def force_plot_one(self, loc, plot_cmap = ["#00cc00", "#002266"]):
+        return shap.force_plot(self.explainer.expected_value, self.shap_values[loc], features = self.features, plot_cmap = plot_cmap)
     
-    def force_plot_many(self, loc, sample = 10000):
-        return shap.force_plot(self.explainer.expected_value, self.shap_values[:loc,:], features = self.features)
+    def force_plot_many(self, loc, sample = 10000, plot_cmap = ["#00cc00", "#002266"]):
+        return shap.force_plot(self.explainer.expected_value, self.shap_values[:loc,:], features = self.features, plot_cmap = plot_cmap)
     
     def summary_plot(self, plot_type = 'violin', alpha=0.01):
         """violin, layered_violin, dot"""
         return shap.summary_plot(self.shap_values, self.df, alpha=alpha, plot_type = plot_type)
-        
+
     def importance_plot(self):
         return shap.summary_plot(self.shap_values, self.df, plot_type="bar")
         
     def interaction_plot(self, sample = 100):
-        shap_interaction_values = explainer.shap_interaction_values(self.df.sample(sample))
+        shap_interaction_values = self.explainer.shap_interaction_values(self.df.sample(sample))
         return shap.summary_plot(shap_interaction_values, features = self.features)
     
     def dependence_plot(self, col1, col2, alpha = 0.3, dot_size=50):
