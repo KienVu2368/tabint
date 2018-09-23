@@ -11,6 +11,8 @@ import pickle
 #denoising autoencoder?? https://www.kaggle.com/c/porto-seguro-safe-driver-prediction/discussion/44629
 ##function do drop and check feature
 ##time dependency check https://youtu.be/3jl2h9hSRvc?t=48m50s
+##hyper parameter tuning?
+
 
 class BaseLearner:
     def __init__(self): None

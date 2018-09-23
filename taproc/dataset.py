@@ -2,8 +2,8 @@ from .utils import *
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 
-
-#imbalance data???
+ 
+#imbalance data??? http://www.chioka.in/class-imbalance-problem/
 #subsampling, over sampling??
 
 class TBDataset:
