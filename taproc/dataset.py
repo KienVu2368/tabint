@@ -55,13 +55,20 @@ class TBDataset:
         if inplace:
             for df in [self.x_trn, self.x_val, self.x_tst]: if df is not None: df[col] = f(df)
         else:
-            return {'trn': self.x_trn[col], self.y_trn, 'val': self.x_val[col], self.y_val, 'tst': self.x_tst[col]}[tp]
+            if tp == 'tst':
+                df = self.x_tst.copy()
+                df[col] = f(df)
+                return df
+            else:
+                df, y_df = self.x_trn[col], self.y_trn if tp == 'trn' else self.x_trn[col], self.y_trn
+                df[col] = f(df)
+                return df, y_df
 
     def sample(self, tp = 'trn', ratio = 0.3):
         if 'tst' == tp: 
             return None if self.x_tst is None else self.x_tst.sample(self.x_tst.shape[0]*ratio)
         else:
-            df, y_df = {'trn': self.x_trn, self.y_trn, 'val': self.x_val, self.y_val, 'tst': self.x_tst}[tp]
+            df, y_df = self.x_trn[col], self.y_trn if tp == 'trn' else self.x_trn[col], self.y_trn
             _, df, _, y_df = train_test_split(df, y_df, test_size = ratio, stratify = y_df)
             return df, y_df
 
