@@ -54,19 +54,27 @@ class TBDataset:
         for df in [self.x_trn, self.x_val, self.x_tst]:
             if df is not None: df[col] = f(df)
 
-    def trn_drop(self, col): return self.x_trn.drop(col, axis = 1)
-
     def sample(self, tp = 'trn', ratio = 0.3):
-        df, y_df = {'trn': (self.x_trn, self.y_trn), 'val': (self.x_val, self.y_val), 'tst': self.tst}[tp]
-        length = int(df.shape[0]*ratio)
-        mask = np.concatenate([np.full(length, 1, dtype=np.bool), np.full(df.shape[0] - length, 1, dtype=np.bool)])
-        np.random.shuffle(mask)
-        return df[mask], y_df[mask]
+        if 'tst' == tp: 
+            return None if self.x_tst is None else self.x_tst.sample(self.x_tst.shape[0]*ratio)
+        else:
+            df, y_df = (self.x_trn, self.y_trn) if tp == 'trn' else (self.x_val, self.y_val)
+            length = int(df.shape[0]*ratio)
+            mask = np.concatenate([np.full(length, 1, dtype=np.bool), np.full(df.shape[0] - length, 1, dtype=np.bool)])
+            np.random.shuffle(mask)
+            return df[mask], y_df[mask]
 
     def keep(self, col):
         self.x_trn = self.x_trn[col]
         self.x_val = self.x_val[col]
         if self.x_tst is not None: self.x_tst = self.x_tst[col]
+
+    def drop(self, col, tp = 'trn'):
+        if 'tst' == tp: 
+            return None if self.x_tst is None else self.x_tst.drop(col, axis = 1)
+        else:
+            df, y_df = (self.x_trn.drop(col, axis = 1), self.y_trn) if tp == 'trn' else (self.x_val.drop(col, axis = 1), self.y_val)
+        return df, y_df
 
     def drop_inplace(self, col):
         self.x_trn.drop(col, axis=1, inplace = True)
@@ -74,3 +82,6 @@ class TBDataset:
         if self.x_tst is not None: self.x_tst.drop(col, axis=1, inplace = True)
 
     def trn_n_val(self): return self.x_trn, self.y_trn, self.x_val, self.y_val
+
+    @property
+    def features(self): return self.x_trn.columns

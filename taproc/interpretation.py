@@ -6,15 +6,9 @@ import shap
 import shap.plots.colors as cl
 
 
-#confidence base on tree variance
-#Accumulated Local Effect plots 
 #https://christophm.github.io/interpretable-ml-book
-#waterfall chart for tree interpreter
 
 
-class TreeConfidence:
-    def __init__(self):
-        None
 
 class PartialDependence:
     def __init__(self, md, df, features, target):
@@ -113,8 +107,7 @@ green_blue = LinearSegmentedColormap.from_list('custom blue', [(0, '#ffff00'), (
 cl.red_blue = green_blue
 cl.red_blue_solid = green_blue
 
-class SHAP:
-    
+class SHAP:    
     def __init__(self, explainer, shap_values, df, features):
         shap.initjs()
         self.explainer = explainer
@@ -146,7 +139,13 @@ class SHAP:
         shap_interaction_values = self.explainer.shap_interaction_values(self.df.sample(sample))
         return shap.summary_plot(shap_interaction_values, features = self.features)
     
-    def dependence_plot(self, col1, col2, alpha = 0.3, dot_size=50):
+    def dependence_plot(self, col1, col2 = 'auto', alpha = 0.3, dot_size=50):
         return shap.dependence_plot(ind = col1, interaction_index = col2, 
                                     shap_values = self.shap_values, features = self.df, 
                                     alpha = alpha, dot_size=dot_size)
+
+class TreeConfidence:
+    def __init__(self): None
+
+    @classmethod
+    def from_Sklearner(cls): None

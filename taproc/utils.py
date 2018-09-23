@@ -34,3 +34,5 @@ def get_cons_cats(df, max_n_cat = 30):
 
 
 def isNone(v, x): return x if v is None else v
+
+#todo broadcasting and parallel
