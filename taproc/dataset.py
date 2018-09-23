@@ -4,6 +4,7 @@ import lightgbm as lgb
 
 
 #imbalance data???
+#subsampling, over sampling??
 
 class TBDataset:
     def __init__(self, x_trn, y_trn, x_val, y_val, x_tst = None):
@@ -50,36 +51,33 @@ class TBDataset:
         for col in cols: df[col] = np.random.permutation(df[col])
         return df
 
-    def add(self, col, f): 
-        for df in [self.x_trn, self.x_val, self.x_tst]:
-            if df is not None: df[col] = f(df)
+    def add(self, col, f, inplace = True, tp = 'trn'): 
+        if inplace:
+            for df in [self.x_trn, self.x_val, self.x_tst]: if df is not None: df[col] = f(df)
+        else:
+            return {'trn': self.x_trn[col], self.y_trn, 'val': self.x_val[col], self.y_val, 'tst': self.x_tst[col]}[tp]
 
     def sample(self, tp = 'trn', ratio = 0.3):
         if 'tst' == tp: 
             return None if self.x_tst is None else self.x_tst.sample(self.x_tst.shape[0]*ratio)
         else:
-            df, y_df = (self.x_trn, self.y_trn) if tp == 'trn' else (self.x_val, self.y_val)
-            length = int(df.shape[0]*ratio)
-            mask = np.concatenate([np.full(length, 1, dtype=np.bool), np.full(df.shape[0] - length, 1, dtype=np.bool)])
-            np.random.shuffle(mask)
-            return df[mask], y_df[mask]
+            df, y_df = {'trn': self.x_trn, self.y_trn, 'val': self.x_val, self.y_val, 'tst': self.x_tst}[tp]
+            _, df, _, y_df = train_test_split(df, y_df, test_size = ratio, stratify = y_df)
+            return df, y_df
 
-    def keep(self, col):
-        self.x_trn = self.x_trn[col]
-        self.x_val = self.x_val[col]
-        if self.x_tst is not None: self.x_tst = self.x_tst[col]
-
-    def drop(self, col, tp = 'trn'):
-        if 'tst' == tp: 
-            return None if self.x_tst is None else self.x_tst.drop(col, axis = 1)
+    def keep(self, col, inplace = True, tp = 'trn'): 
+        if inplace:
+            for df in [self.x_trn, self.x_val, self.x_tst]: if df is not None: df = df[col]
         else:
-            df, y_df = (self.x_trn.drop(col, axis = 1), self.y_trn) if tp == 'trn' else (self.x_val.drop(col, axis = 1), self.y_val)
-        return df, y_df
+            return {'trn': self.x_trn[col], self.y_trn, 'val': self.x_val[col], self.y_val, 'tst': self.x_tst[col]}[tp]
 
-    def drop_inplace(self, col):
-        self.x_trn.drop(col, axis=1, inplace = True)
-        self.x_val.drop(col, axis=1, inplace = True)
-        if self.x_tst is not None: self.x_tst.drop(col, axis=1, inplace = True)
+    def drop(self, col, inplace = True, tp = 'trn'): 
+        if inplace:
+            for df in [self.x_trn, self.x_val, self.x_tst]: if df is not None: df.drop(col, axis=1, inplace = True)
+        else:
+            return {'trn': self.x_trn.drop(col, axis = 1), self.y_trn, 
+                    'val': self.x_val.drop(col, axis = 1), self.y_val, 
+                    'tst': self.x_tst.drop(col, axis = 1)}[tp]
 
     def trn_n_val(self): return self.x_trn, self.y_trn, self.x_val, self.y_val
 
