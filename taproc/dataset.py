@@ -1,10 +1,13 @@
 from .utils import *
+import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 
  
 #imbalance data??? http://www.chioka.in/class-imbalance-problem/
-#subsampling, over sampling??
+#subsampling, over sampling?? http://forums.fast.ai/t/unbalanced-data-upsampling-vs-downsampling/20406/4
+#simulators? opimizers
 
 class TBDataset:
     def __init__(self, x_trn, y_trn, x_val, y_val, x_tst = None):
@@ -41,8 +44,8 @@ class TBDataset:
         return cls(x_trn, y_trn, x_val, y_val, x_tst)
 
     @staticmethod
-    def random_choose(x, pct = 2, ratio = 0.2, **kargs):
-        n = x.shape[0] if random.randint(0,9) < pct else int(np.round(x.shape[0]*(ratio-0.06)))
+    def random_choose(x, pct = 1, ratio = 0.2, **kargs):
+        n = x.shape[0] if random.randint(0,9) < pct else int(np.round(x.shape[0]*(ratio-0.04)))
         return x.sample(n=n, **kargs)
 
     def val_permutation(self, cols):
@@ -51,16 +54,18 @@ class TBDataset:
         for col in cols: df[col] = np.random.permutation(df[col])
         return df
 
-    def add(self, col, f, inplace = True, tp = 'trn'): 
+    def apply(self, col, f, inplace = True, tp = 'trn'): 
         if inplace:
-            for df in [self.x_trn, self.x_val, self.x_tst]: if df is not None: df[col] = f(df)
+            self.x_trn[col] = f(self.x_trn)
+            self.x_val[col] = f(self.x_val)
+            if self.x_tst is not None: self.x_tst[col] = f(self.x_tst)
         else:
             if tp == 'tst':
                 df = self.x_tst.copy()
                 df[col] = f(df)
                 return df
             else:
-                df, y_df = self.x_trn[col], self.y_trn if tp == 'trn' else self.x_trn[col], self.y_trn
+                df, y_df = (self.x_trn.copy(), self.y_trn) if tp == 'trn' else (self.x_trn.copy(), self.y_trn)
                 df[col] = f(df)
                 return df, y_df
 
@@ -68,25 +73,35 @@ class TBDataset:
         if 'tst' == tp: 
             return None if self.x_tst is None else self.x_tst.sample(self.x_tst.shape[0]*ratio)
         else:
-            df, y_df = self.x_trn[col], self.y_trn if tp == 'trn' else self.x_trn[col], self.y_trn
+            df, y_df = (self.x_trn[col], self.y_trn) if tp == 'trn' else (self.x_trn[col], self.y_trn)
             _, df, _, y_df = train_test_split(df, y_df, test_size = ratio, stratify = y_df)
             return df, y_df
 
     def keep(self, col, inplace = True, tp = 'trn'): 
         if inplace:
-            for df in [self.x_trn, self.x_val, self.x_tst]: if df is not None: df = df[col]
+            self.x_trn = self.x_trn[col]
+            self.x_val = self.x_val[col]
+            if self.x_tst is not None: self.x_tst = self.x_tst[col]
         else:
-            return {'trn': self.x_trn[col], self.y_trn, 'val': self.x_val[col], self.y_val, 'tst': self.x_tst[col]}[tp]
+            if tp == 'tst':
+                return None if self.x_tst is None else self.x_tst[col]
+            else:
+                return (self.x_trn[col], self.y_trn) if tp == 'trn' else (self.x_val[col], self.y_val)
 
     def drop(self, col, inplace = True, tp = 'trn'): 
         if inplace:
-            for df in [self.x_trn, self.x_val, self.x_tst]: if df is not None: df.drop(col, axis=1, inplace = True)
+            self.x_trn.drop(col, axis=1, inplace = True)
+            self.x_val.drop(col, axis=1, inplace = True)
+            if self.x_tst is not None: self.x_tst.drop(col, axis=1, inplace = True)
         else:
-            return {'trn': self.x_trn.drop(col, axis = 1), self.y_trn, 
-                    'val': self.x_val.drop(col, axis = 1), self.y_val, 
-                    'tst': self.x_tst.drop(col, axis = 1)}[tp]
-
-    def trn_n_val(self): return self.x_trn, self.y_trn, self.x_val, self.y_val
+            if tp == 'tst': 
+                return None if self.x_tst is None else self.x_tst.drop(col, axis = 1)
+            else:
+                return (self.x_trn.drop(col, axis = 1), self.y_trn) if tp == 'trn' else (self.x_val.drop(col, axis = 1), self.y_val)
 
     @property
     def features(self): return self.x_trn.columns
+
+    def trn(self): return self.x_trn, self.y_trn
+
+    def val(self): return self.x_val, self.y_val

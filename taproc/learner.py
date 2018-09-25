@@ -11,35 +11,34 @@ import pickle
 #denoising autoencoder?? https://www.kaggle.com/c/porto-seguro-safe-driver-prediction/discussion/44629
 ##function do drop and check feature
 ##time dependency check https://youtu.be/3jl2h9hSRvc?t=48m50s
-##hyper parameter tuning?
+##hyper parameter tuning??
+##essemble method - low priority
 
 
-class BaseLearner:
-    def __init__(self): None
-        #model
-        #data
-        #crit
-        #lrs learning rate
-        #callback?
+class TBLearner:
+    def __init__(self, md):
+        self.md = md
 
-    def fit(self): None
+    def fit(self, **kargs): self.md.fit( **kargs)
 
-    def predict(self): None
+    def predict(self, df, **kargs): return self.md.predict(df, **kargs)
 
-    def load(self): None
+    def load(self, fn): self.md.load(fn)
         
-    def save(self): None
+    def save(self): self.md.save(fn)
 
 
-class LGBLearner:
-    def __init__(self, fn = 'LGB_Model.pkl'):
-        self.fn = fn
+class LGBLearner(TBLearner):
+    def __init__(self):
         self.score = []
-
-    def fit(self, params, x_trn, y_trn, x_val, y_val, ctn = False, save = True, early_stopping_rounds=100, verbose_eval = 100, **kargs):
-        self.md = None 
-        if ctn: self.load()
-        lgb_trn, lgb_val = self.build_ds(x_trn, y_trn, x_val, y_val)
+        
+    def fit(self, params, x_trn, y_trn, x_val, y_val, 
+            ctn = False, save = True, fn = 'LGB_Model.pkl', early_stopping_rounds=100, verbose_eval = 100, **kargs):
+        if ctn: 
+            self.load(fn)
+        else:
+            self.md = None
+        lgb_trn, lgb_val = self.LGBDataset(x_trn, y_trn, x_val, y_val)
         self.md = lgb.train(params = params,
                             train_set = lgb_trn,
                             valid_sets = [lgb_trn, lgb_val],
@@ -48,20 +47,17 @@ class LGBLearner:
                             verbose_eval = verbose_eval, **kargs)
 
         self.score.append(self.md.best_score)
-        if save: self.save()
-    
+        if save: self.save(fn)
+
     @staticmethod
-    def build_ds(x_trn, y_trn, x_val, y_val):
+    def LGBDataset(x_trn, y_trn, x_val, y_val):
         lgb_trn = lgb.Dataset(x_trn, y_trn)
         lgb_val = lgb.Dataset(x_val, y_val, free_raw_data=False, reference=lgb_trn)
         return lgb_trn, lgb_val
     
-    def predict(self, df, **kargs): return self.md.predict(df, **kargs)
-
-    def load(self): 
-        with open(self.fn, 'rb') as fin: self.md = pickle.load(fin)
+    def load(self, fn): 
+        with open(fn, 'rb') as fin: self.md = pickle.load(fin)
         
-    def save(self, fn = None):
-        fn = isNone(fn, self.fn)
+    def save(self, fn):
         with open(fn, 'wb') as fout: pickle.dump(self.md, fout)
 

@@ -75,6 +75,7 @@ class Importance:
         '''
         http://explained.ai/rf-importance/index.html
         '''
+        #to do in parrallel??
         y_pred = learner.predict(ds.x_val)
         baseline = score(ds.y_val, y_pred)        
         I = pd.DataFrame.from_dict({'Feature': [' & '.join(to_list(cols)) for cols in group_cols]})
