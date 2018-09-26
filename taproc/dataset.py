@@ -8,6 +8,7 @@ import lightgbm as lgb
 #imbalance data??? http://www.chioka.in/class-imbalance-problem/
 #subsampling, over sampling?? http://forums.fast.ai/t/unbalanced-data-upsampling-vs-downsampling/20406/4
 #simulators? opimizers
+#mixup augmentation? http://forums.fast.ai/t/mixup-data-augmentation/22764
 
 class TBDataset:
     def __init__(self, x_trn, y_trn, x_val, y_val, x_tst = None):

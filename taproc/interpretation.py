@@ -120,8 +120,11 @@ class SHAP:
         explainer = shap.TreeExplainer(learner.md)
         shap_values = explainer.shap_values(df)
         features = df.columns
-        return cls(explainer, shap_values, df, features)    
-    
+        return cls(explainer, shap_values, df, features)
+
+    @classmethod
+    def from_kernel(cls): None
+
     def force_plot_one(self, loc, plot_cmap = ["#00cc00", "#002266"]):
         return shap.force_plot(self.explainer.expected_value, self.shap_values[loc], features = self.features, plot_cmap = plot_cmap)
     

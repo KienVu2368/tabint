@@ -13,6 +13,8 @@ import pickle
 ##time dependency check https://youtu.be/3jl2h9hSRvc?t=48m50s
 ##hyper parameter tuning??
 ##essemble method - low priority
+#todo learning rate finder for learner?
+#optimizer
 
 
 class TBLearner:
@@ -61,3 +63,16 @@ class LGBLearner(TBLearner):
     def save(self, fn):
         with open(fn, 'wb') as fout: pickle.dump(self.md, fout)
 
+
+class XGBLearner(TBLearner):
+    def __init__(self):
+        None
+
+
+class DTLearner(TBLearner):
+    def __init__(self):
+        None
+
+class RFLearner(TBLearner):
+    def __init__(self):
+        None
