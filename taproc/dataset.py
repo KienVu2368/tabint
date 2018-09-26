@@ -22,7 +22,7 @@ class TBDataset:
         return cls(x_trn, y_trn, x_val, y_val, x_tst)
 
     @classmethod
-    def from_TBSplit(cls, df, y_df, x_tst, pct = 2, ratio = 0.2, **kargs):
+    def from_TBSplit(cls, df, y_df, x_tst, pct = 1, ratio = 0.2, **kargs):
         _, cats = get_cons_cats(df)
         
         tst_key = x_tst[cats].drop_duplicates().values
