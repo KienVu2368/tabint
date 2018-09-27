@@ -11,6 +11,9 @@ import shap.plots.colors as cl
 
 
 class PartialDependence:
+    """
+    Partial dependence https://github.com/SauceCat/PDPbox
+    """
     def __init__(self, md, df, features, target):
         self.md = md
         self.df = df
@@ -107,7 +110,10 @@ green_blue = LinearSegmentedColormap.from_list('custom blue', [(0, '#ffff00'), (
 cl.red_blue = green_blue
 cl.red_blue_solid = green_blue
 
-class SHAP:    
+class SHAP:
+    """
+    SHAP value: https://github.com/slundberg/shap
+    """
     def __init__(self, explainer, shap_values, df, features):
         shap.initjs()
         self.explainer = explainer

@@ -18,6 +18,9 @@ import pickle
 
 
 class TBLearner:
+    """
+    Contain model and its method: learning rate, callbacks, loss function...
+    """
     def __init__(self, md):
         self.md = md
 
@@ -34,9 +37,12 @@ class LGBLearner(TBLearner):
     def __init__(self):
         self.score = []
         
-    def fit(self, params, x_trn, y_trn, x_val, y_val, 
-            ctn = False, save = True, fn = 'LGB_Model.pkl', early_stopping_rounds=100, verbose_eval = 100, **kargs):
-        if ctn: 
+    def fit(self, params, x_trn, y_trn, x_val, y_val,
+            lr = None, callbacks = None, 
+            fobj=None, feval=None,
+            ctn = False, save = True, fn = 'LGB_Model.pkl', 
+            early_stopping_rounds=100, verbose_eval = 100, **kargs):
+        if ctn:
             self.load(fn)
         else:
             self.md = None
@@ -44,7 +50,11 @@ class LGBLearner(TBLearner):
         self.md = lgb.train(params = params,
                             train_set = lgb_trn,
                             valid_sets = [lgb_trn, lgb_val],
-                            init_model = self.md, 
+                            init_model = self.md,
+                            lr = lr,
+                            callbacks = callbacks,
+                            fobj = fobj,
+                            feval = feval,
                             early_stopping_rounds = early_stopping_rounds, 
                             verbose_eval = verbose_eval, **kargs)
 
@@ -54,7 +64,7 @@ class LGBLearner(TBLearner):
     @staticmethod
     def LGBDataset(x_trn, y_trn, x_val, y_val):
         lgb_trn = lgb.Dataset(x_trn, y_trn)
-        lgb_val = lgb.Dataset(x_val, y_val, free_raw_data=False, reference=lgb_trn)
+        lgb_val = lgb.Dataset(x_val, y_val, reference=lgb_trn)
         return lgb_trn, lgb_val
     
     def load(self, fn): 

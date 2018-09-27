@@ -21,6 +21,9 @@ def aggreate(df, params, by_col, prefix = 'AGG'):
 
 
 class Dendogram:
+    """
+    plot cluster of feature, to see high correlate feature
+    """
     def __init__(self, z, result, cols):
         self.z = z
         self.result = result
@@ -67,14 +70,14 @@ class Dendogram:
 
 
 class Importance:
+    """
+    permutation importance. See more at http://explained.ai/rf-importance/index.html
+    """
     def __init__(self, impt_df):
         self.I = sort_desc(impt_df)
     
     @classmethod
     def from_Learner(cls, learner, ds,  group_cols, score = roc_auc_score):
-        '''
-        http://explained.ai/rf-importance/index.html
-        '''
         #to do in parrallel??
         y_pred = learner.predict(ds.x_val)
         baseline = score(ds.y_val, y_pred)        
