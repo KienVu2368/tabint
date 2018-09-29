@@ -2,6 +2,9 @@ import pdpbox
 from pdpbox import pdp, info_plots
 from .learner import *
 from matplotlib.colors import LinearSegmentedColormap
+from animl.viz.trees import dtreeviz
+from animl.trees import *
+import graphviz
 import shap
 import shap.plots.colors as cl
 
@@ -152,9 +155,3 @@ class SHAP:
         return shap.dependence_plot(ind = col1, interaction_index = col2, 
                                     shap_values = self.shap_values, features = self.df, 
                                     alpha = alpha, dot_size=dot_size)
-
-class TreeConfidence:
-    def __init__(self): None
-
-    @classmethod
-    def from_Sklearner(cls): None

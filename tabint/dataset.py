@@ -130,9 +130,19 @@ class TBDataset:
             else:
                 return (self.x_trn.drop(col, axis = 1), self.y_trn) if tp == 'trn' else (self.x_val.drop(col, axis = 1), self.y_val)
 
+    def transform(self, tfs):
+        for tps in tfs.keys():
+            for col in tfs[tps]:
+                if tps == 'apply': self.apply(col, tfs[tps][col])
+                elif tps == 'drop': self.drop(col)
+                elif tps == 'keep': self.keep(col)
+
     @property
     def features(self): return self.x_trn.columns
 
+    @property
     def trn(self): return self.x_trn, self.y_trn
 
+    @property
     def val(self): return self.x_val, self.y_val
+
