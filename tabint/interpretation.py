@@ -134,13 +134,16 @@ class SHAP:
     @classmethod
     def from_kernel(cls): None
 
-    def force_plot_one(self, loc, plot_cmap = ["#00cc00", "#002266"]):
-        return shap.force_plot(self.explainer.expected_value, self.shap_values[loc], features = self.features, plot_cmap = plot_cmap)
+    def force_plot_one(self, loc = None, df = None, link='logit', plot_cmap = ["#00cc00", "#002266"]):
+        if loc is not None:
+            return shap.force_plot(self.explainer.expected_value, self.shap_values[loc], link = link, features = self.features, plot_cmap = plot_cmap)
+        else:
+            return shap.force_plot(self.explainer.expected_value, self.explainer.shap_values(df), features = self.features, plot_cmap = plot_cmap)
     
     def force_plot_many(self, loc, sample = 10000, plot_cmap = ["#00cc00", "#002266"]):
         return shap.force_plot(self.explainer.expected_value, self.shap_values[:loc,:], features = self.features, plot_cmap = plot_cmap)
     
-    def summary_plot(self, plot_type = 'violin', alpha=0.01):
+    def summary_plot(self, plot_type = 'violin', alpha=0.3):
         """violin, layered_violin, dot"""
         return shap.summary_plot(self.shap_values, self.df, alpha=alpha, plot_type = plot_type)
 

@@ -76,6 +76,8 @@ class LGBLearner(SKLearner):
         lgb_trn = lgb.Dataset(x_trn, y_trn)
         lgb_val = lgb.Dataset(x_val, y_val, reference=lgb_trn)
         return lgb_trn, lgb_val
+
+    def predict(self, df, **kargs): return self.md.predict(df, num_iteration = self.md.best_iteration, **kargs)
     
     def load(self, fn): 
         with open(fn + '.pkl', 'rb') as fin: self.md = pickle.load(fin)
