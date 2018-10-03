@@ -5,6 +5,7 @@ from .utils import *
 
 #todo use dask, numba and do things in parallel
 #immutation https://www.kaggle.com/dansbecker/handling-missing-values
+#use sklearn pipeline and transformner??
 
 def tabular_proc(df, **kargs):
     df = df.copy()

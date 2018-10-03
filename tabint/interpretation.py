@@ -43,7 +43,7 @@ class PartialDependence:
     def info_target(self, var, sample = 10000, target = None, grid_type = 'percentile', **kargs):
         fig, axes, self.summary['info_target'] = info_plots.target_plot(
                 df=self.sample(sample), feature=var, feature_name=var, 
-                target=isNone(target, self.target), grid_type = grid_type, **kargs)
+                target=target or self.target, grid_type = grid_type, **kargs)
 
         _ = axes['bar_ax'].set_xticklabels(self.summary['info_target'].display_column.values)
         plt.show()    
@@ -76,8 +76,8 @@ class PartialDependence:
     def target_interact(self, var, var_name = None, target=None,
                         sample = 10000, show_outliers=True, **kargs):
         fig, axes, self.summary['target_interact'] = info_plots.target_plot_interact(
-                df=self.sample(sample), target=isNone(target, self.target),
-                features= var, feature_names = isNone(var_name, var),
+                df=self.sample(sample), target= target or self.target,
+                features= var, feature_names = var_name or var,
                 show_outliers=show_outliers, **kargs)
         plt.show()
         
@@ -85,7 +85,7 @@ class PartialDependence:
                         sample = 10000, which_classes = None, show_outliers=True, **kargs):
         fig, axes, self.summary['actual_interact'] = info_plots.actual_plot_interact(
                 model = self.md, X = self.sample(sample),
-                features=var, feature_names=isNone(var_name, var), 
+                features=var, feature_names=var_name or var, 
                 which_classes=which_classes, show_outliers= show_outliers, **kargs)
         plt.show()
         
@@ -100,7 +100,7 @@ class PartialDependence:
         for plot_type in plot_types:
             figs, ax = pdp.pdp_interact_plot(
                 pdp_interact_out = ft_plot, 
-                feature_names = isNone(var_name, var), 
+                feature_names = var_name or var, 
                 plot_type= plot_type, plot_pdp=True, which_classes=which_classes)
         plt.show()
     
@@ -138,7 +138,8 @@ class SHAP:
         if loc is not None:
             return shap.force_plot(self.explainer.expected_value, self.shap_values[loc], link = link, features = self.features, plot_cmap = plot_cmap)
         else:
-            return shap.force_plot(self.explainer.expected_value, self.explainer.shap_values(df), features = self.features, plot_cmap = plot_cmap)
+            self.shap_value_one = self.explainer.shap_values(df)
+            return shap.force_plot(self.explainer.expected_value, self.shap_value_one, features = self.features, plot_cmap = plot_cmap)
     
     def force_plot_many(self, loc, sample = 10000, plot_cmap = ["#00cc00", "#002266"]):
         return shap.force_plot(self.explainer.expected_value, self.shap_values[:loc,:], features = self.features, plot_cmap = plot_cmap)
@@ -151,8 +152,8 @@ class SHAP:
         return shap.summary_plot(self.shap_values, self.df, plot_type="bar")
         
     def interaction_plot(self, sample = 100):
-        shap_interaction_values = self.explainer.shap_interaction_values(self.df.sample(sample))
-        return shap.summary_plot(shap_interaction_values, features = self.features)
+        self.interaction_values = self.explainer.shap_interaction_values(self.df.sample(sample))
+        return shap.summary_plot(self.interaction_values, features = self.features)
     
     def dependence_plot(self, col1, col2 = 'auto', alpha = 0.3, dot_size=50):
         return shap.dependence_plot(ind = col1, interaction_index = col2, 

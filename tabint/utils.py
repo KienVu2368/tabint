@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 def na_rm(x): return x[~np.isnan(x)]
 
@@ -32,7 +33,5 @@ def get_cons_cats(df, max_n_cat = 30):
             else: cons.append(name)
     return cons, cats
 
-
-def isNone(v, x): return x if v is None else v
 
 #todo broadcasting and parallel
