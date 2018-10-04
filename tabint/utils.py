@@ -33,5 +33,3 @@ def get_cons_cats(df, max_n_cat = 30):
             else: cons.append(name)
     return cons, cats
 
-
-#todo broadcasting and parallel

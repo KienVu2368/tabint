@@ -14,55 +14,58 @@ class TBDataset:
     """
     Contain train, validation, test set
     """
-    def __init__(self, x_trn, y_trn, x_val, y_val, x_tst = None):
+    def __init__(self, x_trn, y_trn, x_val, y_val, cons, cats, x_tst = None):
         self.x_trn, self.y_trn = x_trn, y_trn
         self.x_val, self.y_val = x_val, y_val
         self.x_tst = x_tst
+        self.cons, self.cats = cons, cats
 
     @classmethod
-    def from_SklearnSplit(cls, df, y_df, ratio = 0.2, x_tst = None, **kargs):
+    def from_SklearnSplit(cls, df, y_df, cons, cats, ratio = 0.2, x_tst = None, **kargs):
         """
         use sklearn split function to split data
         """
         x_trn, x_val, y_trn, y_val = train_test_split(df, y_df, test_size=ratio, stratify = y_df)
-        return cls(x_trn, y_trn, x_val, y_val, x_tst)
+        return cls(x_trn, y_trn, x_val, y_val, cons, cats, x_tst)
 
     @classmethod
-    def from_TBSplit(cls, df, y_df, x_tst, pct = 1, ratio = 0.2, tp = 'classification', **kargs):
+    def from_TBSplit(cls, df, y_df, cons, cats, x_tst = None, pct = 1, ratio = 0.2, tp = 'classification', time_df = None, **kargs):
         """
         split data smarter: https://medium.com/@kien.vu/d6b7a8dbaaf5
-        still messi
         """
         if tp == 'classification':
-            _, cats = get_cons_cats(df)
-            
-            tst_key = x_tst[cats].drop_duplicates().values
-            tst_key = set('~'.join([str(j) for j in i]) for i in tst_key)
+            if x_tst is None:
+                #combine two things together
+                x_val = df.groupby(cats).apply(random_choose, pct, ratio)
+                val_index = set([i[-1] for i in x_val.index.values])
+                x_val.reset_index(drop=True, inplace=True)
 
-            df_key = df[cats].apply(lambda x: '~'.join([str(j) for j in x.values]), axis=1)
-            mask = df_key.isin(tst_key)
+                mask = df.index.isin(val_index)
+                y_val = y_df[mask]
+                x_trn, y_trn = df[~mask], y_df[~mask]
+            else:
+                tst_key = x_tst[cats].drop_duplicates().values
+                tst_key = set('~'.join([str(j) for j in i]) for i in tst_key)
 
-            x_trn, y_trn = df[~mask], y_df[~mask]
-            x_val_set, y_val_set = df[mask], y_df[mask]
+                df_key = df[cats].apply(lambda x: '~'.join([str(j) for j in x.values]), axis=1)
+                mask = df_key.isin(tst_key)
 
-            x_val = x_val_set.groupby(cats).apply(cls.random_choose, pct, ratio, **kargs)
-            val_index = set([i[-1] for i in x_val.index.values])
-            x_val.reset_index(drop=True, inplace=True)
-            
-            mask = x_val_set.index.isin(val_index)
-            y_val = y_val_set[mask]
-            x_trn, y_trn = pd.concat([x_trn, val_set[~mask]]), pd.concat([y_trn, y_val_set[~mask]])
+                x_trn, y_trn = df[~mask], y_df[~mask]
+                x_val_set, y_val_set = df[mask], y_df[mask]
+
+                x_val = x_val_set.groupby(cats).apply(random_choose, pct, ratio, **kargs)
+                val_index = set([i[-1] for i in x_val.index.values])
+                x_val.reset_index(drop=True, inplace=True)
+                
+                mask = x_val_set.index.isin(val_index)
+                y_val = y_val_set[mask]
+                x_trn, y_trn = pd.concat([x_trn, val_set[~mask]]), pd.concat([y_trn, y_val_set[~mask]])
         else:
-            None
-        return cls(x_trn, y_trn, x_val, y_val, x_tst)
-
-    @staticmethod
-    def random_choose(x, pct = 1, ratio = 0.2, **kargs):
-        """
-        static method for from_TBSplit, random choose rows from a group
-        """
-        n = x.shape[0] if random.randint(0,9) < pct else int(np.round(x.shape[0]*(ratio-0.04)))
-        return x.sample(n=n, **kargs)
+            df = df.sort_values(by=time_df, ascending=True)
+            split_id = int(df.shape*(1-ratio))
+            x_trn, y_trn = df[:split_id], y_df[:split_id]
+            x_val, y_val = df[split_id:], y_df[split_id:]
+        return cls(x_trn, y_trn, x_val, y_val, cons, cats, x_tst)
 
     def val_permutation(self, cols):
         """"
@@ -81,6 +84,8 @@ class TBDataset:
             self.x_trn[col] = f(self.x_trn)
             self.x_val[col] = f(self.x_val)
             if self.x_tst is not None: self.x_tst[col] = f(self.x_tst)
+
+            if col not in self.cons and col not in self.cats: self.cons.append(col)
         else:
             if tp == 'tst':
                 df = self.x_tst.copy()
@@ -110,6 +115,9 @@ class TBDataset:
             self.x_trn = self.x_trn[col]
             self.x_val = self.x_val[col]
             if self.x_tst is not None: self.x_tst = self.x_tst[col]
+
+            self.cons = [i for i in self.cons if i not in to_list(col)]
+            self.cats = [i for i in self.cats if i not in to_list(col)]            
         else:
             if tp == 'tst':
                 return None if self.x_tst is None else self.x_tst[col]
@@ -124,6 +132,9 @@ class TBDataset:
             self.x_trn.drop(col, axis=1, inplace = True)
             self.x_val.drop(col, axis=1, inplace = True)
             if self.x_tst is not None: self.x_tst.drop(col, axis=1, inplace = True)
+
+            self.cons = [i for i in self.cons if i not in to_list(col)]
+            self.cats = [i for i in self.cats if i not in to_list(col)]            
         else:
             if tp == 'tst': 
                 return None if self.x_tst is None else self.x_tst.drop(col, axis = 1)
@@ -146,3 +157,10 @@ class TBDataset:
     @property
     def val(self): return self.x_val, self.y_val
 
+
+def random_choose(x, pct = 1, ratio = 0.2, **kargs):
+    """
+    static method for from_TBSplit, random choose rows from a group
+    """
+    n = x.shape[0] if np.random.randint(0,9) < pct else int(np.round(x.shape[0]*(ratio-0.04)))
+    return x.sample(n=n, **kargs)

@@ -7,24 +7,10 @@ from .utils import *
 #immutation https://www.kaggle.com/dansbecker/handling-missing-values
 #use sklearn pipeline and transformner??
 
-def tabular_proc(df, **kargs):
-    df = df.copy()
-    train_cats(df)
-    res = proc_df2(df, **kargs)
-    return res
 
-
-def scale_vars2(df, mapper = None, scale_fld_exc = None):
-    scale_fld_exc = to_list(scale_fld_exc) if scale_fld_exc is not None else []
-    warnings.filterwarnings('ignore', category=sklearn.exceptions.DataConversionWarning)
-    if mapper is None:
-        map_f = [([n],StandardScaler()) for n in df.columns if is_numeric_dtype(df[n]) and n not in scale_fld_exc]
-        mapper = DataFrameMapper(map_f).fit(df)
-    df[mapper.transformed_names_] = mapper.transform(df)
-    return mapper
-
-def proc_df2(df, y_fld=None, skip_flds=None, ignore_flds=None, do_scale=False, na_dict=None,
-            preproc_fn=None, max_n_cat=None, subset=None, mapper=None):
+def tabular_proc(df, y_fld=None, skip_flds=None, ignore_flds=None, 
+                 do_scale=False, na_dict=None, preproc_fn=None, 
+                 max_n_cat=15, subset=None, mapper=None):
 
     if not ignore_flds: ignore_flds=[]
     if not skip_flds: skip_flds=[]
@@ -47,9 +33,35 @@ def proc_df2(df, y_fld=None, skip_flds=None, ignore_flds=None, do_scale=False, n
     if len(na_dict_initial.keys()) > 0:
         df.drop([a + '_na' for a in list(set(na_dict.keys()) - set(na_dict_initial.keys()))], axis=1, inplace=True)
     if do_scale: mapper = scale_vars2(df, mapper)
-    for n,c in df.items(): numericalize(df, c, n, max_n_cat)
+
+    df, cons = get_cons_cats(df, max_n_cat)
     df = pd.get_dummies(df, dummy_na=True)
+    cats = [i for i in df.columns if i not in cons]
+    
     df = pd.concat([ignored_flds, df], axis=1)
-    res = [df, y, na_dict]
-    if do_scale: res = res + [mapper]
+    res = [df, y, na_dict, cons, cats]
+    if do_scale: res = res + [mapper] 
     return res
+    
+
+def get_cons_cats(df, max_n_cat=15):
+    cons = []
+    for name, value in df.items():
+        if is_numeric_dtype(value) and value.dtypes != np.bool:
+            if value.nunique()<=max_n_cat and not np.array_equal(value.unique(), np.array([0, 1])): 
+                df[name] = value.astype('category').cat.as_ordered()
+            else: cons.append(name)
+        else:
+            if value.nunique()>max_n_cat: df[name] = value.astype('category').cat.codes+1; cons.append(name)
+            elif value.dtypes.name == 'category': df[name] = value.cat.as_ordered()
+    return df, cons
+
+
+def scale_vars2(df, mapper = None, scale_fld_exc = None):
+    scale_fld_exc = to_list(scale_fld_exc) if scale_fld_exc is not None else []
+    warnings.filterwarnings('ignore', category=sklearn.exceptions.DataConversionWarning)
+    if mapper is None:
+        map_f = [([n],StandardScaler()) for n in df.columns if is_numeric_dtype(df[n]) and n not in scale_fld_exc]
+        mapper = DataFrameMapper(map_f).fit(df)
+    df[mapper.transformed_names_] = mapper.transform(df)
+    return mapper
