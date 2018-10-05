@@ -164,3 +164,18 @@ def random_choose(x, pct = 1, ratio = 0.2, **kargs):
     """
     n = x.shape[0] if np.random.randint(0,9) < pct else int(np.round(x.shape[0]*(ratio-0.04)))
     return x.sample(n=n, **kargs)
+
+
+class ResultDF:
+    def __init__(self, df, sort_col):
+        self.result = df
+        self.sort_col = sort_col
+        self.len = df.shape[0]
+    
+    def __call__(self): return self.result
+    
+    def top(self, n=None): return self.result.sort_values(by=self.sort_col, ascending=False)[:(n or self.len)]
+    
+    def pos(self, n=None): return self.result[self.result[self.sort_col]>=0].sort_values(by=self.sort_col, ascending=False)[:(n or self.len)]
+    
+    def neg(self, n=None): return self.result[self.result[self.sort_col]<=0].sort_values(by=self.sort_col, ascending=True)[:(n or self.len)]

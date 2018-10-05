@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
+
 def na_rm(x): return x[~np.isnan(x)]
 
 

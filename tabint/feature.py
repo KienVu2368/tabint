@@ -1,6 +1,7 @@
 from .utils import *
 from .eda import *
 from .learner import *
+from.dataset import *
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,7 +27,7 @@ class Dendogram:
     """
     def __init__(self, z, result, cols):
         self.z = z
-        self.result = result
+        self.result = ResultDF(result)
         self.cols = cols
     
     def chk_ft(self, n):
@@ -74,7 +75,7 @@ class Importance:
     permutation importance. See more at http://explained.ai/rf-importance/index.html
     """
     def __init__(self, impt_df):
-        self.I = sort_desc(impt_df)
+        self.I = ResultDF(impt_df)
     
     @classmethod
     def from_Learner(cls, learner, ds,  group_cols, score = roc_auc_score):

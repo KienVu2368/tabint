@@ -2,11 +2,12 @@ import pdpbox
 from pdpbox import pdp, info_plots
 from .learner import *
 from matplotlib.colors import LinearSegmentedColormap
-from animl.viz.trees import dtreeviz
-from animl.trees import *
+from.dataset import *
 import graphviz
 import shap
 import shap.plots.colors as cl
+from treeinterpreter import treeinterpreter as ti
+import waterfall_chart
 
 
 #https://christophm.github.io/interpretable-ml-book
@@ -135,11 +136,10 @@ class SHAP:
     def from_kernel(cls): None
 
     def force_plot_one(self, loc = None, df = None, link='logit', plot_cmap = ["#00cc00", "#002266"]):
-        if loc is not None:
-            return shap.force_plot(self.explainer.expected_value, self.shap_values[loc], link = link, features = self.features, plot_cmap = plot_cmap)
-        else:
-            self.shap_value_one = self.explainer.shap_values(df)
-            return shap.force_plot(self.explainer.expected_value, self.shap_value_one, features = self.features, plot_cmap = plot_cmap)
+        values = self.shap_values[loc] if loc is not None else self.explainer.shap_values(df)
+        result = pd.DataFrame({'Column': self.features, 'Shap value':values})
+        self.shap_value_one = ResultDF(result, 'Shap value')
+        return shap.force_plot(self.explainer.expected_value, values, features = self.features, plot_cmap = plot_cmap)
     
     def force_plot_many(self, loc, sample = 10000, plot_cmap = ["#00cc00", "#002266"]):
         return shap.force_plot(self.explainer.expected_value, self.shap_values[:loc,:], features = self.features, plot_cmap = plot_cmap)
@@ -159,3 +159,21 @@ class SHAP:
         return shap.dependence_plot(ind = col1, interaction_index = col2, 
                                     shap_values = self.shap_values, features = self.df, 
                                     alpha = alpha, dot_size=dot_size)
+
+
+class Traterfall:
+    def __init__(self, result):
+        self.result = result
+        
+    @classmethod
+    def from_SKTree(cls, learner, df, loc):
+        prediction, bias, contributions = ti.predict(learner.md, df.iloc[[loc]])
+        contributions = [contributions[0][i] for i in range(len(contributions[0]))]
+        df = pd.DataFrame({'Column': df.columns, 'contributions': contributions})
+        return cls(ResultDF(df, 'contributions'))
+        
+    def plot(self, rotation_value=90, threshold=0.2, sorted_value=True, **kargs):
+        my_plot = waterfall_chart.plot(self.result().Column, self.result().contributions, 
+                                       rotation_value=rotation_value, 
+                                       threshold=threshold,
+                                       sorted_value=sorted_value,**kargs)

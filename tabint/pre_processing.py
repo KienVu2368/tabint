@@ -1,7 +1,5 @@
-import fastai
-from fastai.imports import *
-from fastai.structured import *
 from .utils import *
+from pandas.api.types import is_string_dtype, is_numeric_dtype
 
 #todo use dask, numba and do things in parallel
 #immutation https://www.kaggle.com/dansbecker/handling-missing-values
@@ -9,8 +7,8 @@ from .utils import *
 
 
 def tabular_proc(df, y_fld=None, skip_flds=None, ignore_flds=None, 
-                 do_scale=False, na_dict=None, preproc_fn=None, 
-                 max_n_cat=15, subset=None, mapper=None):
+                 do_scale=False, na_dict=None, preproc_fn=None,
+                 dummies = True, max_n_cat=15, subset=None, mapper=None):
 
     if not ignore_flds: ignore_flds=[]
     if not skip_flds: skip_flds=[]
@@ -35,7 +33,7 @@ def tabular_proc(df, y_fld=None, skip_flds=None, ignore_flds=None,
     if do_scale: mapper = scale_vars2(df, mapper)
 
     df, cons = get_cons_cats(df, max_n_cat)
-    df = pd.get_dummies(df, dummy_na=True)
+    if dummies: df = pd.get_dummies(df, dummy_na=True)
     cats = [i for i in df.columns if i not in cons]
     
     df = pd.concat([ignored_flds, df], axis=1)
@@ -65,3 +63,13 @@ def scale_vars2(df, mapper = None, scale_fld_exc = None):
         mapper = DataFrameMapper(map_f).fit(df)
     df[mapper.transformed_names_] = mapper.transform(df)
     return mapper
+
+
+def fix_missing(df, col, name, na_dict):
+    if is_numeric_dtype(col):
+        if pd.isnull(col).sum() or (name in na_dict):
+            df[name+'_na'] = pd.isnull(col)
+            filler = na_dict[name] if name in na_dict else col.median()
+            df[name] = col.fillna(filler)
+            na_dict[name] = filler
+    return na_dict
