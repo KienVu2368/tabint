@@ -1,5 +1,5 @@
 from .utils import *
-from .eda import *
+from .visual import *
 from .learner import *
 from.dataset import *
 import pandas as pd
@@ -78,11 +78,12 @@ class Importance:
         self.I = ResultDF(impt_df)
     
     @classmethod
-    def from_Learner(cls, learner, ds,  group_cols, score = roc_auc_score):
+    def from_Learner(cls, learner, ds,  group_cols = None, score = roc_auc_score):
         #to do in parrallel??
+        if group_cols is None: group_cols = ds.x_val.columns
         y_pred = learner.predict(ds.x_val)
         baseline = score(ds.y_val, y_pred)        
-        I = pd.DataFrame.from_dict({'Feature': [' & '.join(to_list(cols)) for cols in group_cols]})
+        I = pd.DataFrame.from_dict({'Feature': [' & '.join(to_iter(cols)) for cols in group_cols]})
         I['Importance'] = I.apply(cls.cal_impt, axis = 1, learner = learner, ds = ds, baseline = baseline, score = score)
         return cls(I)
             

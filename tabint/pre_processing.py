@@ -2,6 +2,7 @@ from .utils import *
 from pandas.api.types import is_string_dtype, is_numeric_dtype
 from sklearn.preprocessing import StandardScaler
 from sklearn_pandas import DataFrameMapper
+import pdb
 
 #todo use dask, numba and do things in parallel
 #immutation https://www.kaggle.com/dansbecker/handling-missing-values
@@ -9,33 +10,31 @@ from sklearn_pandas import DataFrameMapper
 
 
 
-def tabular_proc(df, tfms, ignore_flds=None):
-    res = []
+def tabular_proc(df, y_fld = None, procs = None, ignore_flds=None):
+    pp_outp = {}
     df = df.copy()
     
     if ignore_flds is not None:
         ignored_flds = df.loc[:, ignore_flds]
         df.drop(ignore_flds, axis=1, inplace=True)
+
+    if y_fld is not None:
+        if not is_numeric_dtype(df[y_fld]): df[y_fld] = df[y_fld].cat.codes
+        y = df[y_fld].values
+        df.drop(y_fld, axis=1, inplace=True)
     
-    for f in tfms:
-        out = f(df)
-        if str(f)[10:].split(' ')[0] == 'dummies': 
-            cats = [i for i in df.columns if i not in cons]
-            res += [cats]
-        if out is not None: 
-            if str(f)[10:].split(' ')[0] == 'app_cat': cons = out
-            res += [out]
+    for f in procs: df = f(df, pp_outp)
     
-    if ignore_flds is not None: df = pd.concat([ignored_flds, df], axis=1)
-    
-    res.insert(0,df)
-    return res
+    if ignore_flds is not None: df = pd.concat([df, ignored_flds], axis=1)
+
+    if y_fld is not None: return [df, y, pp_outp] 
+    else: return [df, pp_outp]
 
 
 class TBPreProc:
     def __init__(self, *args): self.args = args
         
-    def __call__(self, df): return self.func(df, *self.args)
+    def __call__(self, df, pp_outp): return self.func(df, pp_outp, *self.args)
     
     @staticmethod
     def func(*args): None
@@ -43,37 +42,24 @@ class TBPreProc:
 
 class skip_flds(TBPreProc):
     @staticmethod
-    def func(df, skip_flds):
-        df = df.drop(skip_flds, axis=1, inplace=True)
-        return None
+    def func(df, pp_outp, skip_flds): return df.drop(skip_flds, axis=1)
+
 
 class subset(TBPreProc):
     @staticmethod
-    def func(df, subset):
-        df = df.sample(subset).copy
-        return None
-
-
-class get_y(TBPreProc):
-    @staticmethod
-    def func(df, y_fld):
-        if y_fld is None: y = None
-        else:
-            if not is_numeric_dtype(df[y_fld]): df[y_fld] = df[y_fld].cat.codes
-            y = df[y_fld].values
-        df.drop(y_fld, axis=1, inplace=True)
-        return y
+    def func(df, pp_outp, ss): return df.sample(ss)
 
 
 class fill_na(TBPreProc):
     @staticmethod
-    def func(df, na_dict = None):
+    def func(df, pp_outp, na_dict = None):
         na_dict = {} if na_dict is None else na_dict.copy()
         na_dict_initial = na_dict.copy()
         for n,c in df.items(): na_dict = fix_missing(df, c, n, na_dict)
         if len(na_dict_initial.keys()) > 0:
             df.drop([a + '_na' for a in list(set(na_dict.keys()) - set(na_dict_initial.keys()))], axis=1, inplace=True)
-        return na_dict
+        pp_outp['na_dict'] = na_dict
+        return df
 
 
 def fix_missing(df, col, name, na_dict):
@@ -88,21 +74,36 @@ def fix_missing(df, col, name, na_dict):
 
 class app_cat(TBPreProc):
     @staticmethod
-    def func(df, max_n_cat=15):
+    def func(df, pp_outp, max_n_cat=15):
         cons = []
         for name, value in df.items():
             if is_numeric_dtype(value) and value.dtypes != np.bool:
-                if value.nunique()<=max_n_cat and not np.array_equal(value.unique(), np.array([0, 1])): 
-                    df[name] = value.astype('category').cat.as_ordered()
+                if value.nunique()<=max_n_cat:
+                    if not np.array_equal(value.unique(), np.array([0, 1])): df[name] = value.astype('category').cat.as_ordered()
                 else: cons.append(name)
             else:
                 if value.nunique()>max_n_cat: df[name] = value.astype('category').cat.codes+1; cons.append(name)
+                elif value.dtypes.name == 'object': df[name] = value.astype('category').cat.as_ordered()
                 elif value.dtypes.name == 'category': df[name] = value.cat.as_ordered()
-        return cons
+        pp_outp['cons'] = cons
+        return df
 
 
 class dummies(TBPreProc):
     @staticmethod
-    def func(df):
+    def func(df, pp_outp):
         df = pd.get_dummies(df, dummy_na=True)
-        return None
+        pp_outp['cats'] = [i for i in df.columns if i not in pp_outp['cons']]
+        return df
+
+
+class scale_vars(TBPreProc):
+    @staticmethod
+    def func(df, pp_outp, mapper = None):
+        warnings.filterwarnings('ignore', category=sklearn.exceptions.DataConversionWarning)
+        if mapper is None:
+            map_f = [([n],StandardScaler()) for n in df.columns if is_numeric_dtype(df[n])]
+            mapper = DataFrameMapper(map_f).fit(df)
+        df[mapper.transformed_names_] = mapper.transform(df)
+        pp_outp['mapper'] = mapper
+        return df

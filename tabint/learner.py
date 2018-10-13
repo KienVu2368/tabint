@@ -1,13 +1,14 @@
 import pandas as pd
 import numpy as np
-from .eda import *
-from .plot import *
+from .visual import *
 from .utils import *
 import lightgbm as lgb
 import pickle
 from sklearn import tree
 from sklearn.externals import joblib
 from sklearn.ensemble import *
+from sklearn import metrics
+from sklearn.metrics import *
 
 
 
@@ -24,7 +25,7 @@ class SKLearner:
     def __init__(self, md):
         self.md = md
         
-    def fit(self, x_trn, y_trn, x_val, y_val, save = True, fn = 'SKTree', **kargs):
+    def fit(self, x_trn, y_trn, x_val, y_val, save = False, fn = 'SKTree', **kargs):
         self.md.fit(x_trn, y_trn, **kargs)        
         print('trn accuracy: ', self.md.score(x_trn, y_trn))
         print('val accuracy: ', self.md.score(x_val, y_val))
@@ -51,7 +52,7 @@ class LGBLearner(SKLearner):
     def fit(self, params, x_trn, y_trn, x_val, y_val,
             lrts = None, callbacks = None, 
             fobj=None, feval=None,
-            ctn=False, save=True, fn = 'LGB_Model', 
+            ctn=False, save=False, fn = 'LGB_Model', 
             early_stopping_rounds=100, verbose_eval = 100, **kargs):
         if ctn:
             self.load(fn)
@@ -90,3 +91,18 @@ class LGBLearner(SKLearner):
 class XGBLearner(SKLearner):
     def __init__(self):
         None
+
+
+class ReceiverOperatingCharacteristic:
+    def __init__(self, fpr, tpr, result, roc_auc):
+        self.fpr, self.tpr, self.result, self.roc_auc = fpr, tpr, result, roc_auc
+        
+    @classmethod
+    def from_learner(cls, learner, y, x):
+        fpr, tpr, threshold = metrics.roc_curve(y, learner.predict(x))
+        result = pd.DataFrame.from_dict({'threshold': threshold, 'tpr':tpr, 'fpr':fpr})
+        roc_auc = metrics.auc(fpr, tpr)
+        return cls(fpr, tpr, result, roc_auc)
+    
+    @property
+    def plot(self): roc_curve_plot(self.fpr, self.tpr, self.roc_auc)

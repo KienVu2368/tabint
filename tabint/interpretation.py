@@ -135,11 +135,12 @@ class SHAP:
     @classmethod
     def from_kernel(cls): None
 
-    def force_plot_one(self, loc = None, df = None, link='logit', plot_cmap = ["#00cc00", "#002266"]):
-        values = self.shap_values[loc] if loc is not None else self.explainer.shap_values(df)
-        result = pd.DataFrame({'Column': self.features, 'Shap value':values})
+    def force_plot_one(self, loc = None, record = None, link='logit', plot_cmap = ["#00cc00", "#002266"]):
+        s_values = self.shap_values[loc] if loc is not None else self.explainer.shap_values(record)[0]
+        col_value = self.df.iloc[[loc]].values if loc is not None else record.values[0]
+        result = pd.DataFrame({'Column name': self.features, 'Column value': col_value, 'Shap value': s_values})
         self.shap_value_one = ResultDF(result, 'Shap value')
-        return shap.force_plot(self.explainer.expected_value, values, features = self.features, plot_cmap = plot_cmap)
+        return shap.force_plot(self.explainer.expected_value, s_values, features = self.features, plot_cmap = plot_cmap, link = link)
     
     def force_plot_many(self, loc, sample = 10000, plot_cmap = ["#00cc00", "#002266"]):
         return shap.force_plot(self.explainer.expected_value, self.shap_values[:loc,:], features = self.features, plot_cmap = plot_cmap)
