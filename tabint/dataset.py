@@ -1,6 +1,7 @@
 from .utils import *
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_string_dtype, is_numeric_dtype
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 import random
@@ -36,9 +37,6 @@ class TBDataset:
 
     @classmethod
     def from_TBSplit(cls, df, y, cons, cats, x_tst = None, pct = 0.1, ratio = 0.2, tp = 'classification', time_df = None, **kargs):
-        """
-        split data smarter: https://medium.com/@kien.vu/d6b7a8dbaaf5
-        """
         if tp == 'classification':
             if x_tst is None:
                 df = df.copy()
@@ -49,7 +47,7 @@ class TBDataset:
                 train, val = next(sss.split(df, keys))                
                 x_trn, x_val = safe_indexing(df, train), safe_indexing(df, val)
                 
-                y_train = x_train['y_'].copy()
+                y_trn = x_trn['y_'].copy()
                 y_val = x_val['y_'].copy()
                 
                 x_trn.drop('y_', axis=1, inplace = True)
@@ -114,7 +112,7 @@ class TBDataset:
         if 'tst' == tp: 
             return None if self.x_tst is None else self.x_tst.sample(self.x_tst.shape[0]*ratio)
         else:
-            df, y = (self.x_trn[col], self.y_trn) if tp == 'trn' else (self.x_trn[col], self.y_trn)
+            df, y = (self.x_trn, self.y_trn) if tp == 'trn' else (self.x_val, self.y_val)
             _, df, _, y = train_test_split(df, y, test_size = ratio, stratify = y)
             return df, y
 

@@ -105,4 +105,4 @@ class ReceiverOperatingCharacteristic:
         return cls(fpr, tpr, result, roc_auc)
     
     @property
-    def plot(self): roc_curve_plot(self.fpr, self.tpr, self.roc_auc)
+    def plot(self): plot_roc_curve(self.fpr, self.tpr, self.roc_auc)

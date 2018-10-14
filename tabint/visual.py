@@ -6,6 +6,11 @@ from plotnine import *
 from.dataset import *
 import matplotlib.pyplot as plt
 import seaborn as sns
+import waterfall_chart
+import graphviz
+from sklearn.tree import export_graphviz
+import IPython
+import re
 
 
 class BaseViz:
@@ -96,9 +101,9 @@ class KernelDensityEstimation(BaseViz):
                 data = pd_append(data, [col_name]*bins, division, [label]*bins, count)
         return data
         
-    def plot(self, bins = None, **kargs):
+    def plot(self, bins = None, vline = None, **kargs):
         for col_name, col_value in zip(self.col_names, self.col_values):
-            plot_kde(self.label_uniques, self.label_values, col_name, col_value, gridsize = bins or self.bins, **kargs)
+            plot_kde(self.label_uniques, self.label_values, col_name, col_value, gridsize = bins or self.bins, vline = vline, **kargs)
 
 
 def cal_histogram(value, bins):
@@ -134,18 +139,19 @@ def plot_hist(df,  bins = 20):
     plt.tight_layout(h_pad = 2.5)
 
 
-def plot_kde(label_uniques, label_values, col_name, col_value, figsize = None, shade = True, gridsize=100):
+def plot_kde(label_uniques, label_values, col_name, col_value, vline = None, figsize = None, shade = True, gridsize=100):
     if figsize is None: figsize = (5, 5)
     plt.figure(figsize = figsize)
-    for label in label_uniques:
-        sns.kdeplot(col_value[label_values == label], shade=shade, 
-                    label = 'label: ' + str(label), gridsize = gridsize)
+    for label in label_uniques: 
+        sns.kdeplot(col_value[label_values == label], shade=shade, label = 'label: ' + str(label), gridsize = gridsize)
+    if vline is not None: plt.axvline(vline)
     plt.title('Distribution of %s by Label Value' % col_name)
-    plt.xlabel('%s' % col_name); plt.ylabel('Density')
+    plt.xlabel('%s' % col_name)
+    plt.ylabel('Density')
     plt.tight_layout(h_pad = 2.5)
 
 
-def roc_curve_plot(fpr, tpr, roc_auc):
+def plot_roc_curve(fpr, tpr, roc_auc):
     plt.title('Receiver Operating Characteristic')
     plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
     plt.legend(loc = 'lower right')
@@ -154,4 +160,20 @@ def roc_curve_plot(fpr, tpr, roc_auc):
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
+    plt.show()
+
+
+def plot_waterfall(Column, contributions, rotation_value=90, threshold=0.2, sorted_value=True, **kargs):
+    return waterfall_chart.plot(Column, contributions, rotation_value=rotation_value, threshold=threshold, sorted_value=sorted_value,**kargs)
+
+
+def plot_SKTree(es, features, precision=0, size=10, ratio=0.6, **kargs):
+    p=export_graphviz(es, out_file=None, feature_names=features, filled=True,
+                      special_characters=True, rotate=True, precision=precision)
+    IPython.display.display(graphviz.Source(re.sub('Tree {', f'Tree {{ size={size}; ratio={ratio}', p)))
+
+
+def plot_LGBTree(md, tree_index, figsize = (20, 8), show_info = ['split_gain'], **kargs):
+    #error
+    ax = lgb.plot_tree(md, tree_index=tree_index, figsize=figsize, show_info=show_info, **kargs)
     plt.show()

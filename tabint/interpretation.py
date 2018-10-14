@@ -7,7 +7,7 @@ import graphviz
 import shap
 import shap.plots.colors as cl
 from treeinterpreter import treeinterpreter as ti
-import waterfall_chart
+
 
 
 #https://christophm.github.io/interpretable-ml-book
@@ -174,7 +174,29 @@ class Traterfall:
         return cls(ResultDF(df, 'contributions'))
         
     def plot(self, rotation_value=90, threshold=0.2, sorted_value=True, **kargs):
-        my_plot = waterfall_chart.plot(self.result().Column, self.result().contributions, 
-                                       rotation_value=rotation_value, 
-                                       threshold=threshold,
-                                       sorted_value=sorted_value,**kargs)
+        my_plot = plot_waterfall(self.result().Column, self.result().contributions, rotation_value, threshold, sorted_value,**kargs)
+        # my_plot = waterfall_chart.plot(self.result().Column, self.result().contributions, 
+        #                             rotation_value=rotation_value, 
+        #                             threshold=threshold,
+        #                             sorted_value=sorted_value,**kargs)
+
+
+class DrawTree:
+    def __init__(self, es, features, tp):
+        self.es = es
+        self.features = features
+        self.tp = tp
+        
+    @classmethod
+    def from_SKLearn(cls, learner, ds, num_estimator = 0, size=10, ratio=0.6, precision=0):
+        return cls(learner.md.estimators_, ds.features, 'SKTree')
+    
+    @classmethod
+    def from_LGB(cls, learner): return cls(learner.md, None, 'LGB')
+    
+    @classmethod
+    def from_XGB(cls): return None
+    
+    def plot(self, num_estimator = 0, **kargs): 
+        if self.tp == 'SKTree': plot_SKTree(self.es[num_estimator], self.features, **kargs)
+        elif self.tp =='LGB': plot_LGBTree(self.es, num_estimator, **kargs)
