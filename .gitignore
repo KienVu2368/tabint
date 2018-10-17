@@ -61,3 +61,6 @@ target/
 # docs
 docs/df_sample.csv
 docs/README COMPOSE.ipynb
+docs/README export.ipynb
+docs/README export.md
+docs/.ipynb_checkpoints/
