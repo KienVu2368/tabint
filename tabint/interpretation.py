@@ -135,11 +135,11 @@ class SHAP:
     @classmethod
     def from_kernel(cls): None
 
-    def force_plot_one(self, loc = None, record = None, link='logit', plot_cmap = ["#00cc00", "#002266"]):
+    def force_plot_one(self, loc = None, record = None, link='identity', plot_cmap = ["#00cc00", "#002266"]):
         s_values = self.shap_values[loc] if loc is not None else self.explainer.shap_values(record)[0]
-        col_value = self.df.iloc[[loc]].values if loc is not None else record.values[0]
-        result = pd.DataFrame({'Column name': self.features, 'Column value': col_value, 'Shap value': s_values})
-        self.shap_value_one = ResultDF(result, 'Shap value')
+        col_value = self.df.iloc[[loc]].values if loc is not None else record.values
+        result = pd.DataFrame({'Column name': self.features, 'Column value': col_value[0], 'Shap value': s_values})
+        self.force_value_one = ResultDF(result, 'Shap value')
         return shap.force_plot(self.explainer.expected_value, s_values, features = self.features, plot_cmap = plot_cmap, link = link)
     
     def force_plot_many(self, loc, sample = 10000, plot_cmap = ["#00cc00", "#002266"]):
@@ -168,17 +168,14 @@ class Traterfall:
         
     @classmethod
     def from_SKTree(cls, learner, df, loc):
-        prediction, bias, contributions = ti.predict(learner.md, df.iloc[[loc]])
-        contributions = [contributions[0][i] for i in range(len(contributions[0]))]
-        df = pd.DataFrame({'Column': df.columns, 'contributions': contributions})
-        return cls(ResultDF(df, 'contributions'))
+        record = df.iloc[[loc]
+        prediction, bias, contributions = ti.predict(learner.md, record])
+        contributions = [contributions[0][i][0] for i in range(len(contributions[0]))]
+        df = pd.DataFrame({'Column': df.columns, 'Value': record.values, 'Contribute': contributions})
+        return cls(ResultDF(df, 'Contribute'))
         
     def plot(self, rotation_value=90, threshold=0.2, sorted_value=True, **kargs):
-        my_plot = plot_waterfall(self.result().Column, self.result().contributions, rotation_value, threshold, sorted_value,**kargs)
-        # my_plot = waterfall_chart.plot(self.result().Column, self.result().contributions, 
-        #                             rotation_value=rotation_value, 
-        #                             threshold=threshold,
-        #                             sorted_value=sorted_value,**kargs)
+        my_plot = plot_waterfall(self.result().Column, self.result().Contribute, rotation_value, threshold, sorted_value,**kargs)
 
 
 class DrawTree:
@@ -200,3 +197,4 @@ class DrawTree:
     def plot(self, num_estimator = 0, **kargs): 
         if self.tp == 'SKTree': plot_SKTree(self.es[num_estimator], self.features, **kargs)
         elif self.tp =='LGB': plot_LGBTree(self.es, num_estimator, **kargs)
+        elif self.tp == 'XGB': None

@@ -28,7 +28,7 @@ class TBDataset:
         self.cons, self.cats = cons, cats
 
     @classmethod
-    def from_SklearnSplit(cls, df, y, cons, cats, ratio = 0.2, x_tst = None, **kargs):
+    def from_SKSplit(cls, df, y, cons, cats, ratio = 0.2, x_tst = None, **kargs):
         """
         use sklearn split function to split data
         """
@@ -190,6 +190,14 @@ class ResultDF:
     
     def top(self, n=None, col=None): 
         return self.result.sort_values(by=col or self.cons, ascending=False)[:(n or self.len)]
+
+    def larger_than(self, value, col=None):
+        col = col or self.cons
+        return self.result[self.result[col] >= value].sort_values(by=col, ascending=False)
+
+    def smaller_than(self, value, col=None): 
+        col = col or self.cons
+        return self.result[self.result[col] <= value].sort_values(by=col, ascending=False)
     
     def pos(self, n=None, col=None): 
         col = col or self.cons[0]
@@ -218,20 +226,20 @@ class split_by_cats(StratifiedShuffleSplit):
         n_classes = classes.shape[0]
 
         class_counts = np.bincount(y_indices)
-        #if np.min(class_counts) < 2:
-        #    raise ValueError("The least populated class in y has only 1"
-        #                     " member, which is too few. The minimum"
-        #                     " number of groups for any class cannot"
-        #                     " be less than 2.")
+        if np.min(class_counts) < 2:
+            print(ValueError("The least populated class in y has only 1"
+                             " member, which is too few. The minimum"
+                             " number of groups for any class cannot"
+                             " be less than 2."))
 
         if n_train < n_classes:
-            raise ValueError('The train_size = %d should be greater or '
+            print(ValueError('The train_size = %d should be greater or '
                              'equal to the number of classes = %d' %
-                             (n_train, n_classes))
+                             (n_train, n_classes)))
         if n_test < n_classes:
-            raise ValueError('The test_size = %d should be greater or '
+            print(ValueError('The test_size = %d should be greater or '
                              'equal to the number of classes = %d' %
-                             (n_test, n_classes))
+                             (n_test, n_classes)))
 
         # Find the sorted list of instances for each class:
         # (np.unique above performs a sort, so code is O(n logn) already)

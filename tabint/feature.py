@@ -27,7 +27,7 @@ class Dendogram:
     """
     def __init__(self, z, result, cols):
         self.z = z
-        self.result = ResultDF(result)
+        self.result = ResultDF(result, 'dist')
         self.cols = cols
     
     def chk_ft(self, n):
@@ -74,18 +74,18 @@ class Importance:
     """
     permutation importance. See more at http://explained.ai/rf-importance/index.html
     """
-    def __init__(self, impt_df):
-        self.I = ResultDF(impt_df)
+    def __init__(self, result):
+        self.result = result
     
     @classmethod
     def from_Learner(cls, learner, ds,  group_cols = None, score = roc_auc_score):
         #to do in parrallel??
-        if group_cols is None: group_cols = ds.x_val.columns
+        group_cols = group_cols + [i for i in ds.features if i not in flat_list(group_cols)] if group_cols is not None else ds.features
         y_pred = learner.predict(ds.x_val)
         baseline = score(ds.y_val, y_pred)        
-        I = pd.DataFrame.from_dict({'Feature': [' & '.join(to_iter(cols)) for cols in group_cols]})
-        I['Importance'] = I.apply(cls.cal_impt, axis = 1, learner = learner, ds = ds, baseline = baseline, score = score)
-        return cls(I)
+        result = pd.DataFrame.from_dict({'Feature': [' & '.join(to_iter(cols)) for cols in group_cols]})
+        result['Importance'] = result.apply(cls.cal_impt, axis = 1, learner = learner, ds = ds, baseline = baseline, score = score)
+        return cls(ResultDF(result, 'Importance'))
             
     @staticmethod
     def cal_impt(x, learner, ds, baseline, score):
@@ -94,6 +94,6 @@ class Importance:
         permut_score = score(ds.y_val, y_pred_permut)
         return baseline - permut_score
 
-    def top(self, n): return [col.split(' & ') for col in self.I.Feature[:n]]
+    def top_features(self, n): return flat_list([col.split(' & ') for col in self.result.top().Feature[:n]])
 
-    def plot(self, **kagrs): plot_barh(self.I, **kagrs)
+    def plot(self, **kagrs): plot_barh(self.result(), **kagrs)
