@@ -130,7 +130,9 @@ impt.top_features(24)
 ```
 
 
+```
 ['EXT_SOURCE_3', 'EXT_SOURCE_2', 'AMT_CREDIT', 'AMT_GOODS_PRICE', 'AMT_ANNUITY', 'EXT_SOURCE_1', 'DAYS_BIRTH', 'DAYS_EMPLOYED', 'NAME_EDUCATION_TYPE_Higher education', 'DAYS_ID_PUBLISH', 'NAME_CONTRACT_TYPE_Cash loans', 'NAME_FAMILY_STATUS_Married', 'CODE_GENDER_F', 'EXT_SOURCE_1_na', 'CODE_GENDER_M', 'OWN_CAR_AGE', 'FLAG_OWN_CAR_N', 'OWN_CAR_AGE_na', 'NAME_EDUCATION_TYPE_Secondary / secondary special', 'DAYS_LAST_PHONE_CHANGE', 'NAME_INCOME_TYPE_Working', 'ORGANIZATION_TYPE', 'OCCUPATION_TYPE', 'FLAG_DOCUMENT_16', 'REG_CITY_NOT_LIVE_CITY', 'FLAG_WORK_PHONE', 'NAME_FAMILY_STATUS_Widow']
+```
 
 
 
@@ -156,21 +158,19 @@ ds.keep(impt_features)
 ds.features
 ```
 
-
-
-
-    Index(['EXT_SOURCE_3', 'EXT_SOURCE_2', 'AMT_CREDIT', 'AMT_GOODS_PRICE',
-           'AMT_ANNUITY', 'EXT_SOURCE_1', 'DAYS_BIRTH', 'DAYS_EMPLOYED',
-           'NAME_EDUCATION_TYPE_Higher education', 'DAYS_ID_PUBLISH',
-           'NAME_CONTRACT_TYPE_Cash loans', 'NAME_FAMILY_STATUS_Married',
-           'CODE_GENDER_F', 'EXT_SOURCE_1_na', 'CODE_GENDER_M', 'OWN_CAR_AGE',
-           'FLAG_OWN_CAR_N', 'OWN_CAR_AGE_na',
-           'NAME_EDUCATION_TYPE_Secondary / secondary special',
-           'DAYS_LAST_PHONE_CHANGE', 'NAME_INCOME_TYPE_Working',
-           'ORGANIZATION_TYPE', 'OCCUPATION_TYPE', 'FLAG_DOCUMENT_16',
-           'REG_CITY_NOT_LIVE_CITY', 'FLAG_WORK_PHONE',
-           'NAME_FAMILY_STATUS_Widow'],
-          dtype='object')
+```    
+Index(['EXT_SOURCE_3', 'EXT_SOURCE_2', 'AMT_CREDIT', 'AMT_GOODS_PRICE',
+      'AMT_ANNUITY', 'EXT_SOURCE_1', 'DAYS_BIRTH', 'DAYS_EMPLOYED',
+      'NAME_EDUCATION_TYPE_Higher education', 'DAYS_ID_PUBLISH',
+      'NAME_CONTRACT_TYPE_Cash loans', 'NAME_FAMILY_STATUS_Married',
+      'CODE_GENDER_F', 'EXT_SOURCE_1_na', 'CODE_GENDER_M', 'OWN_CAR_AGE',
+      'FLAG_OWN_CAR_N', 'OWN_CAR_AGE_na',
+      'NAME_EDUCATION_TYPE_Secondary / secondary special',
+      'DAYS_LAST_PHONE_CHANGE', 'NAME_INCOME_TYPE_Working',
+      'ORGANIZATION_TYPE', 'OCCUPATION_TYPE', 'FLAG_DOCUMENT_16',
+      'REG_CITY_NOT_LIVE_CITY', 'FLAG_WORK_PHONE',
+      'NAME_FAMILY_STATUS_Widow'], dtype='object')
+```
 
 
 
@@ -241,35 +241,16 @@ Shap = SHAP.from_Tree(learner, ds)
 Shap.force_plot_one(3)
 ```
 
-
-
+<p align="center">
+  <img src="https://raw.githubusercontent.com/KienVu2368/tabint/master/docs/shap_force_plot.png" />
+</p>
 
 
 ```python
 Shap.force_value_one.pos(5)
 ```
 
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/KienVu2368/tabint/master/docs/shap_force_plot.png" />
-</p>
-
-
-
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -321,23 +302,7 @@ Shap.force_value_one.pos(5)
 Shap.force_value_one.neg(5)
 ```
 
-
-
-
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
