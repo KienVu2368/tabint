@@ -38,14 +38,14 @@ class fill_na(TBPreProc):
 
 ## Dataset
 
-Dataset can be build by use split method by SKlearn
+Dataset can be bult by split method of SKlearn
 
 
 ```python
 ds= TBDataset.from_SKSplit(df_proc, y, cons, cats, ratio = 0.2)
 ```
 
-Or by split method by tabint. This method will try to keep distribution of categories between training set and validation set
+Or by split method of tabint. This method will try to keep the same distribution of categories between training set and validation set.
 
 
 ```python
