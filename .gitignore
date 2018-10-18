@@ -64,3 +64,7 @@ docs/README_COMPOSE.ipynb
 docs/README_export.ipynb
 docs/README_export.md
 docs/.ipynb_checkpoints/
+docs/.ipynb_checkpoints
+*.ipynb_checkpoints/
+ipynb_checkpoints/
+nbs/
