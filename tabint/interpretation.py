@@ -41,23 +41,25 @@ class PartialDependence:
                 target.append(tgt_name)
         return cls(learner.md, df, features, target)
     
-    def info_target(self, var, sample = 10000, target = None, grid_type = 'percentile', **kargs):
-        fig, axes, self.summary['info_target'] = info_plots.target_plot(
+    def info_target_plot(self, var, sample = 10000, target = None, grid_type = 'percentile', **kargs):
+        fig, axes, result = info_plots.target_plot(
                 df=self.sample(sample), feature=var, feature_name=var, 
                 target=target or self.target, grid_type = grid_type, **kargs)
+        self.info_target_result =  ResultDF(result, 'count')
 
         _ = axes['bar_ax'].set_xticklabels(self.summary['info_target'].display_column.values)
         plt.show()    
     
-    def info_actual(self, var, sample = 10000, predict_kwds = {}, which_classes=None, **kargs):
-        fig, axes, self.summary['info_actual'] = info_plots.actual_plot(
+    def info_actual_plot(self, var, sample = 10000, predict_kwds = {}, which_classes=None, **kargs):
+        fig, axes, result = info_plots.actual_plot(
                 model=self.md, 
                 X=self.sample(sample), 
                 feature=var, feature_name=var,
                 predict_kwds=predict_kwds, which_classes = which_classes, **kargs)
+        self.info_actual_result =  ResultDF(result, 'count')
         plt.show()        
     
-    def isolate(self, var, sample = 10000,
+    def isolate_plot(self, var, sample = 10000,
                 num_grid_points=10, grid_type='percentile',
                 center = True, plot_lines=True, frac_to_plot=100, plot_pts_dist=True, 
                 cluster=True, n_cluster_centers=10, cluster_method='accurate',
@@ -74,7 +76,7 @@ class PartialDependence:
                 cluster=cluster, n_cluster_centers=n_cluster_centers, which_classes=which_classes)
         plt.show()
         
-    def target_interact(self, var, var_name = None, target=None,
+    def target_interact_plot(self, var, var_name = None, target=None,
                         sample = 10000, show_outliers=True, **kargs):
         fig, axes, self.summary['target_interact'] = info_plots.target_plot_interact(
                 df=self.sample(sample), target= target or self.target,
@@ -82,15 +84,16 @@ class PartialDependence:
                 show_outliers=show_outliers, **kargs)
         plt.show()
         
-    def actual_interact(self, var, var_name = None, 
+    def actual_interact_plot(self, var, var_name = None, 
                         sample = 10000, which_classes = None, show_outliers=True, **kargs):
-        fig, axes, self.summary['actual_interact'] = info_plots.actual_plot_interact(
+        fig, axes, result = info_plots.actual_plot_interact(
                 model = self.md, X = self.sample(sample),
                 features=var, feature_names=var_name or var, 
                 which_classes=which_classes, show_outliers= show_outliers, **kargs)
+        self.actual_interact_result =  ResultDF(result, 'count')
         plt.show()
         
-    def pdp_interact(self, var, var_name=None, sample = 10000, which_classes = None,
+    def pdp_interact_plot(self, var, var_name=None, sample = 10000, which_classes = None,
                      num_grid_points=[10, 10], plot_types = None):        
         ft_plot = pdp.pdp_interact(
                 model=self.md, dataset=self.sample(sample), 
@@ -135,14 +138,14 @@ class SHAP:
     @classmethod
     def from_kernel(cls): None
 
-    def force_plot_one(self, loc = None, record = None, link='identity', plot_cmap = ["#00cc00", "#002266"]):
+    def one_force_plot(self, loc = None, record = None, link='identity', plot_cmap = ["#00cc00", "#002266"]):
         s_values = self.shap_values[loc] if loc is not None else self.explainer.shap_values(record)[0]
         col_value = self.df.iloc[[loc]].values if loc is not None else record.values
         result = pd.DataFrame({'Column name': self.features, 'Column value': col_value[0], 'Shap value': s_values})
-        self.force_value_one = ResultDF(result, 'Shap value')
+        self.one_force_result = ResultDF(result, 'Shap value')
         return shap.force_plot(self.explainer.expected_value, s_values, features = self.features, plot_cmap = plot_cmap, link = link)
     
-    def force_plot_many(self, loc, sample = 10000, plot_cmap = ["#00cc00", "#002266"]):
+    def many_force_plot(self, loc, sample = 10000, plot_cmap = ["#00cc00", "#002266"]):
         return shap.force_plot(self.explainer.expected_value, self.shap_values[:loc,:], features = self.features, plot_cmap = plot_cmap)
     
     def summary_plot(self, plot_type = 'violin', alpha=0.3):

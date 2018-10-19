@@ -193,7 +193,7 @@ pdp = PartialDependence.from_Learner(learner, ds)
 #### info target plot
 
 ```python
-pdp.info_target('EXT_SOURCE_3')
+pdp.info_target_plot('EXT_SOURCE_3')
 ```
 
 
@@ -205,13 +205,13 @@ pdp.info_target('EXT_SOURCE_3')
 We can see result as table
 
 ```python
-pdp.summary['info_target']
+pdp.info_target_result()
 ```
 
 #### isolate plot
 
 ```python
-pdp.isolate('EXT_SOURCE_3')
+pdp.isolate_plot('EXT_SOURCE_3')
 ```
 
 
@@ -255,7 +255,7 @@ Shap = SHAP.from_Tree(learner, ds)
 #### force plot
 
 ```python
-Shap.force_plot_one(3)
+Shap.one_force_plot(3)
 ```
 
 <p align="center">
@@ -265,7 +265,7 @@ Shap.force_plot_one(3)
 And we can see table result also.
 
 ```python
-Shap.force_value_one.pos(5)
+Shap.one_force_result.pos(5)
 ```
 
 <div>
@@ -317,7 +317,7 @@ Shap.force_value_one.pos(5)
 
 
 ```python
-Shap.force_value_one.neg(5)
+Shap.one_force_result.neg(5)
 ```
 
 <div>
