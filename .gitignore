@@ -67,4 +67,5 @@ docs/.ipynb_checkpoints/
 docs/.ipynb_checkpoints
 *.ipynb_checkpoints/
 ipynb_checkpoints/
-nbs/
+/nbs/
+/nbs

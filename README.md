@@ -153,28 +153,31 @@ impt_features = impt.top_features(24)
 ds.keep(impt_features)
 ```
 
+Dataset class in tabint also can apply a funciton to whole training set, validation set and test set
 
 ```python
-ds.features
+ds.apply('DAYS_BIRTH', lambda df: -df['DAYS_BIRTH']/365)
 ```
 
-```    
-Index(['EXT_SOURCE_3', 'EXT_SOURCE_2', 'AMT_CREDIT', 'AMT_GOODS_PRICE',
-      'AMT_ANNUITY', 'EXT_SOURCE_1', 'DAYS_BIRTH', 'DAYS_EMPLOYED',
-      'NAME_EDUCATION_TYPE_Higher education', 'DAYS_ID_PUBLISH',
-      'NAME_CONTRACT_TYPE_Cash loans', 'NAME_FAMILY_STATUS_Married',
-      'CODE_GENDER_F', 'EXT_SOURCE_1_na', 'CODE_GENDER_M', 'OWN_CAR_AGE',
-      'FLAG_OWN_CAR_N', 'OWN_CAR_AGE_na',
-      'NAME_EDUCATION_TYPE_Secondary / secondary special',
-      'DAYS_LAST_PHONE_CHANGE', 'NAME_INCOME_TYPE_Working',
-      'ORGANIZATION_TYPE', 'OCCUPATION_TYPE', 'FLAG_DOCUMENT_16',
-      'REG_CITY_NOT_LIVE_CITY', 'FLAG_WORK_PHONE',
-      'NAME_FAMILY_STATUS_Widow'], dtype='object')
+Or we can pass many transformation function at once.
+
+```python
+tfs = {'drop 1': ['AMT_REQ_CREDIT_BUREAU_HOUR_na', 'AMT_REQ_CREDIT_BUREAU_YEAR_na'],
+    
+        'apply':{'DAYS_BIRTH': lambda df: -df['DAYS_BIRTH']/365,
+                 'DAYS_EMPLOYED': lambda df: -df['DAYS_EMPLOYED']/365,
+                 'NEW_EXT_SOURCES_MEAN': lambda df: df[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3']].mean(axis=1, skipna=True),
+                 'NEW_EXT_SOURCES_GEO': lambda df: (df['EXT_SOURCE_1']*df['EXT_SOURCE_2']*df['EXT_SOURCE_3'])**(1/3),
+                 'AMT_CREDIT/AMT_GOODS_PRICE': lambda df: df['AMT_CREDIT']/df['AMT_GOODS_PRICE'],
+                 'AMT_CREDIT/AMT_CREDIT': lambda df: df['AMT_CREDIT']/df['AMT_CREDIT'],
+                 'DAYS_EMPLOYED/DAYS_BIRTH': lambda df: df['DAYS_EMPLOYED']/df['DAYS_BIRTH'],
+                 'DAYS_BIRTH*EXT_SOURCE_1_na': lambda df: df['DAYS_BIRTH']*df['EXT_SOURCE_1_na']},
+    
+        'drop 2': ['AMT_ANNUITY', 'AMT_CREDIT', 'AMT_GOODS_PRICE']}
+
+ds.transform(tfs)
 ```
 
-
-
-You can read source code of dataset class for more usefull method.
 
 ## Interpretation and explaination
 
@@ -187,6 +190,7 @@ tabint use [PDPbox library](https://github.com/SauceCat/PDPbox) to visualize par
 pdp = PartialDependence.from_Learner(learner, ds)
 ```
 
+#### info target plot
 
 ```python
 pdp.info_target('EXT_SOURCE_3')
@@ -198,7 +202,13 @@ pdp.info_target('EXT_SOURCE_3')
 </p>
 
 
+We can see result as table
 
+```python
+pdp.summary['info_target']
+```
+
+#### isolate plot
 
 ```python
 pdp.isolate('EXT_SOURCE_3')
@@ -226,6 +236,12 @@ Tf.plot(formatting = "$ {:,.3f}")
   <img src="https://raw.githubusercontent.com/KienVu2368/tabint/master/docs/Traterfall.png" />
 </p>
 
+We can see result table
+
+```python
+Tf.result.pos(5)
+Tf.result.neg(5)
+```
 
 ### SHAP
 
@@ -236,6 +252,7 @@ tabint visual SHAP values from [SHAP library](https://github.com/slundberg/shap)
 Shap = SHAP.from_Tree(learner, ds)
 ```
 
+#### force plot
 
 ```python
 Shap.force_plot_one(3)
@@ -245,6 +262,7 @@ Shap.force_plot_one(3)
   <img src="https://raw.githubusercontent.com/KienVu2368/tabint/master/docs/shap_force_plot.png" />
 </p>
 
+And we can see table result also.
 
 ```python
 Shap.force_value_one.pos(5)
@@ -348,7 +366,7 @@ Shap.force_value_one.neg(5)
 </div>
 
 
-
+#### dependence plot
 
 ```python
 Shap.dependence_plot('EXT_SOURCE_2')
