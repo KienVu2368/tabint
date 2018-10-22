@@ -9,11 +9,6 @@ import shap.plots.colors as cl
 from treeinterpreter import treeinterpreter as ti
 
 
-
-#https://christophm.github.io/interpretable-ml-book
-
-
-
 class PartialDependence:
     """
     Partial dependence https://github.com/SauceCat/PDPbox

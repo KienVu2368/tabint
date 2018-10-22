@@ -38,7 +38,7 @@ class fill_na(TBPreProc):
 
 ## Dataset
 
-Dataset can be bult by split method of SKlearn
+Dataset can be built by split method of SKlearn
 
 
 ```python
@@ -162,7 +162,7 @@ ds.apply('DAYS_BIRTH', lambda df: -df['DAYS_BIRTH']/365)
 Or we can pass many transformation function at once.
 
 ```python
-tfs = {'drop 1': ['AMT_REQ_CREDIT_BUREAU_HOUR_na', 'AMT_REQ_CREDIT_BUREAU_YEAR_na'],
+tfs =  {'drop 1': ['AMT_REQ_CREDIT_BUREAU_HOUR_na', 'AMT_REQ_CREDIT_BUREAU_YEAR_na'],
     
         'apply':{'DAYS_BIRTH': lambda df: -df['DAYS_BIRTH']/365,
                  'DAYS_EMPLOYED': lambda df: -df['DAYS_EMPLOYED']/365,
@@ -236,7 +236,7 @@ Tf.plot(formatting = "$ {:,.3f}")
   <img src="https://raw.githubusercontent.com/KienVu2368/tabint/master/docs/Traterfall.png" />
 </p>
 
-We can see result table
+We can see and filter result table
 
 ```python
 Tf.result.pos(5)
