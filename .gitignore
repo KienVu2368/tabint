@@ -69,3 +69,5 @@ docs/.ipynb_checkpoints
 ipynb_checkpoints/
 /nbs/
 /nbs
+nbs/
+*.vscode/

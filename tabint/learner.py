@@ -81,7 +81,7 @@ class LGBLearner(SKLearner):
 
     def predict(self, df, **kargs): return self.md.predict(df, num_iteration = self.md.best_iteration, **kargs)
     
-    def load(self, fn): 
+    def load(self, fn):
         with open(fn + '.pkl', 'rb') as fin: self.md = pickle.load(fin)
         
     def save(self, fn):
@@ -98,11 +98,10 @@ class ReceiverOperatingCharacteristic:
         self.fpr, self.tpr, self.result, self.roc_auc = fpr, tpr, result, roc_auc
         
     @classmethod
-    def from_learner(cls, learner, y, x):
+    def from_learner(cls, learner, x, y):
         fpr, tpr, threshold = metrics.roc_curve(y, learner.predict(x))
         result = pd.DataFrame.from_dict({'threshold': threshold, 'tpr':tpr, 'fpr':fpr})
         roc_auc = metrics.auc(fpr, tpr)
         return cls(fpr, tpr, result, roc_auc)
     
-    @property
     def plot(self): plot_roc_curve(self.fpr, self.tpr, self.roc_auc)

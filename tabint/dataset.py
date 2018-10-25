@@ -1,4 +1,5 @@
 from .utils import *
+from .pre_processing import *
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_string_dtype, is_numeric_dtype
@@ -124,7 +125,7 @@ class TBDataset:
             self.x_trn = self.x_trn[col]
             self.x_val = self.x_val[col]
             if self.x_tst is not None: self.x_tst = self.x_tst[col]
-            self.remove_col_from_cons_cats(col)          
+            self.keep_col_from_cons_cats(col)          
         else:
             if tp == 'tst':
                 return None if self.x_tst is None else self.x_tst[col]
@@ -157,10 +158,36 @@ class TBDataset:
         self.cons = [i for i in self.cons if i not in to_iter(col)]
         self.cats = [i for i in self.cats if i not in to_iter(col)]
 
+    def keep_col_from_cons_cats(self, col):
+        self.cons = [i for i in self.cons if i in to_iter(col)]
+        self.cats = [i for i in self.cats if i in to_iter(col)]
+
+
     def add_col_to_cons_cats(self, col):
-        if col not in self.cons and col not in self.cats: 
+        if col not in self.features: 
             if is_numeric_dtype(self.x_trn[col].values): self.cons.append(col)
             else: self.cats.append(col)
+
+    def remove_outlier(self, features = None, inplace = True, tp = 'trn'):
+        features = features or self.cons
+        if inplace:
+            self.x_trn, filt = filter_outlier(self.x_trn, features)
+            self.y_trn = self.y_trn[filt]
+
+            self.x_val, filt = filter_outlier(self.x_val, features)
+            self.y_val = self.y_val[filt]
+
+            self.x_tst = filter_outlier(self.x_tst, features)[0]
+        else:
+            if tp == 'tst': return filter_outlier(self.x_trn, features)[0]
+            else:
+                if tp == 'trn': 
+                    df, filt = filter_outlier(self.x_trn, features)
+                    y = self.y_trn[filt]
+                else: 
+                    df, filt = filter_outlier(self.x_val, features)
+                    y = self.y_val[filt]
+                return df, y
 
     @property
     def features(self): return self.x_trn.columns
@@ -206,8 +233,6 @@ class ResultDF:
     def neg(self, n=None, col=None):
         col = col or self.cons[0]
         return self.result[self.result[col]<=0].sort_values(by=col, ascending=True)[:(n or self.len)]
-
-
 
 
 class split_by_cats(StratifiedShuffleSplit):

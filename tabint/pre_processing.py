@@ -1,4 +1,5 @@
 from .utils import *
+from .visual import *
 from pandas.api.types import is_string_dtype, is_numeric_dtype
 from sklearn.preprocessing import StandardScaler
 from sklearn_pandas import DataFrameMapper
@@ -43,6 +44,21 @@ class TBPreProc:
 class skip_flds(TBPreProc):
     @staticmethod
     def func(df, pp_outp, skip_flds): return df.drop(skip_flds, axis=1)
+
+
+class remove_outlier(TBPreProc):
+    @staticmethod
+    def func(df, pp_outp):
+        return filter_outlier(df, pp_outp['cons'])[0]
+
+
+def filter_outlier(df, cons):
+    filt =  np.full(df.shape[0], True)
+    for f, v in df[cons].items():
+        Min, _, _, _, Max, _ = boxnwhisker_value(v)
+        inlier = np.logical_and(v.values >= Min, v.values <= Max)
+        filt = np.logical_and(filt, inlier)
+    return df[filt], filt
 
 
 class subset(TBPreProc):

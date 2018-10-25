@@ -1,12 +1,14 @@
 import pdpbox
 from pdpbox import pdp, info_plots
 from .learner import *
+from .pre_processing import *
 from matplotlib.colors import LinearSegmentedColormap
-from.dataset import *
+from .dataset import *
 import graphviz
 import shap
 import shap.plots.colors as cl
 from treeinterpreter import treeinterpreter as ti
+import numpy as np
 
 
 class PartialDependence:
@@ -112,7 +114,7 @@ green_blue = LinearSegmentedColormap.from_list('custom blue', [(0, '#ffff00'), (
 cl.red_blue = green_blue
 cl.red_blue_solid = green_blue
 
-class SHAP:
+class Shapley:
     """
     SHAP value: https://github.com/slundberg/shap
     """
@@ -124,7 +126,7 @@ class SHAP:
     
     @classmethod
     def from_Tree(cls, learner, ds, sample = 10000):
-        df = ds.x_trn.sample(sample).astype(np.float32)
+        df = ds.remove_outlier(inplace = False)[0].sample(sample).astype(np.float32)
         explainer = shap.TreeExplainer(learner.md)
         shap_values = explainer.shap_values(df)
         features = df.columns
@@ -136,7 +138,7 @@ class SHAP:
     def one_force_plot(self, loc = None, record = None, link='identity', plot_cmap = ["#00cc00", "#002266"]):
         s_values = self.shap_values[loc] if loc is not None else self.explainer.shap_values(record)[0]
         col_value = self.df.iloc[[loc]].values if loc is not None else record.values
-        result = pd.DataFrame({'Column name': self.features, 'Column value': col_value[0], 'Shap value': s_values})
+        result = pd.DataFrame({'feature': self.features, 'feature value': col_value[0], 'Shap value': s_values})
         self.one_force_result = ResultDF(result, 'Shap value')
         return shap.force_plot(self.explainer.expected_value, s_values, features = self.features, plot_cmap = plot_cmap, link = link)
     
@@ -165,15 +167,18 @@ class Traterfall:
         self.result = result
         
     @classmethod
-    def from_SKTree(cls, learner, df, loc):
-        record = df.iloc[[loc]
-        prediction, bias, contributions = ti.predict(learner.md, record])
+    def from_df_loc(cls, learner, df, loc):
+        return cls.from_record(learner, df.iloc[[loc]])
+
+    @classmethod
+    def from_record(cls, learner, record):
+        prediction, bias, contributions = ti.predict(learner.md, record)
         contributions = [contributions[0][i][0] for i in range(len(contributions[0]))]
-        df = pd.DataFrame({'Column': df.columns, 'Value': record.values, 'Contribute': contributions})
-        return cls(ResultDF(df, 'Contribute'))
+        df = pd.DataFrame({'feature': df.columns, 'value': record.values, 'contribute': contributions})
+        return cls(ResultDF(df, 'contribute'))
         
     def plot(self, rotation_value=90, threshold=0.2, sorted_value=True, **kargs):
-        my_plot = plot_waterfall(self.result().Column, self.result().Contribute, rotation_value, threshold, sorted_value,**kargs)
+        my_plot = plot_waterfall(self.result().feature, self.result().contribute, rotation_value, threshold, sorted_value,**kargs)
 
 
 class DrawTree:

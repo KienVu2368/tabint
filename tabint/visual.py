@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 import pdb
 from plotnine import *
-from.dataset import *
+from .dataset import *
+from .learner import *
 import matplotlib.pyplot as plt
 import seaborn as sns
 import waterfall_chart
@@ -27,7 +28,7 @@ class Missing(BaseViz):
     def from_df(cls, df):
         df_miss = df.isnull().sum()/len(df)*100
         df_miss = df_miss[df_miss > 0]
-        df_miss = pd.DataFrame({'column':df_miss.index, 'missing percent':df_miss.values})
+        df_miss = pd.DataFrame({'feature':df_miss.index, 'missing percent':df_miss.values})
         return cls(ResultDF(df_miss, 'missing percent'))
     
     def plot(self): return plot_barh(self.data())
@@ -37,7 +38,7 @@ class Correlation(BaseViz):
     @classmethod
     def from_df(cls, df, taget):
         correlations = df.corr()[taget]
-        corr_df = pd.DataFrame({'column':correlations.index, 'corr':correlations.values})
+        corr_df = pd.DataFrame({'feature': correlations.index, 'corr':correlations.values})
         corr_df['neg'] = corr_df['corr'] < 0
         corr_df['corr'] = abs(corr_df['corr'])
         corr_df = corr_df[corr_df['column'] != taget]
@@ -58,16 +59,53 @@ class Histogram(BaseViz):
     
     @staticmethod
     def calculate(df, bins):
-        result = pd.DataFrame(columns=['col', 'division', 'count'])
+        result = pd.DataFrame(columns=['feature', 'division', 'count'])
         for col, value in df.items():
             count, division = cal_histogram(value, bins)
-            data = pd_append(result, [col]*bins, division, count)
+            data = df_append(result, [col]*bins, division, count)
         return ResultDF(data, 'count')
     
     def __getitem__(self, key): return self.data.__getitem__(key)
     
     def plot(self, bins = None):
         return plot_hist(self.plot_df, bins = bins or self.bins)
+
+
+def cal_histogram(value, bins):
+    count, division = np.histogram(value, bins=bins)
+    division = [str(division[i]) + '~' + str(division[i+1]) for i in range(len(division)-1)]
+    return count, division
+
+
+class BoxnWhisker(BaseViz):
+    def __init__(self, features, values, data):
+        self.features, self.values = features, values
+        self.data = data
+        
+    @classmethod
+    def from_df(cls, df, features = None):
+        values = df.values.T if features is None else df[to_iter(features)].values.T
+        features = features or df.columns        
+        return cls.from_series(features, values)
+    
+    @classmethod
+    def from_series(cls, features, values):
+        data = pd.DataFrame(columns=['feature', 'min', 'q1', 'median', 'q3', 'max'])
+        for f, v in zip(features, values): 
+            Min, Q1, Median, Q3, Max, _ = boxnwhisker_value(v)
+            data = df_append(result, [f], [Min], [Q1], [Median], [Q3], [Max])
+        return cls(to_iter(features), to_iter(values), data)
+
+    def plot(self, orient = 'h', **kwarg): 
+        for f, v in zip(self.features, self.values): plot_boxnwhisker(f, v, orient = orient, **kwarg)
+
+
+def boxnwhisker_value(values):
+    Median = np.median(values)
+    Q1, Q3 = np.percentile(values, [25,75])
+    IQR = Q3 - Q1
+    Min, Max = Q1 - IQR*1.5, Q3 + IQR*1.5
+    return max(Min, np.min(values)), Q1, Median, Q3, min(Max,np.max(values)), IQR
 
 
 class KernelDensityEstimation(BaseViz):
@@ -80,36 +118,30 @@ class KernelDensityEstimation(BaseViz):
     @classmethod
     def from_df(cls, df, label_name, col_names, bins = 50):
         label_values = df[label_name].values
-        col_values, col_names = to_iter(df[col_names].T.values), to_iter(col_names)
-        label_uniques = np.unique(label_values)
-        data = cls.calculate(label_uniques, label_values, col_names, col_values, bins)
-        return cls(data, label_uniques, label_values, col_names, col_values, bins)
+        return cls.from_series(col_names, col_values, label_values, bins)
 
     @classmethod
-    def from_series(cls, label_values, col_names, col_values, bins = 50):
+    def from_learner(cls, learner, x, y, bins = 50): return cls.from_series('prob', learner.predict(x), y, bins)
+
+    @classmethod
+    def from_series(cls, col_names, col_values, label_values, bins = 50):
         label_uniques = np.unique(label_values)
         col_names, col_values = to_iter(col_names), to_iter(col_values)
         data = cls.calculate(label_uniques, label_values, col_names, col_values, bins)
-        return cls(data, label_uniques, label_values, col_names, col_values, bins)
+        return cls(ResultDF(data, 'count'), label_uniques, label_values, col_names, col_values, bins)
     
     @staticmethod
     def calculate(label_uniques, label_values, col_names, col_values, bins):
-        data = pd.DataFrame(columns=['col name', 'division', 'label value', 'count'])
+        data = pd.DataFrame(columns=['feature', 'division', 'label', 'count'])
         for col_name, col_value in zip(col_names, col_values):
             for label in label_uniques:
                 count, division = cal_histogram(na_rm(col_value[label_values == label]), bins)
-                data = pd_append(data, [col_name]*bins, division, [label]*bins, count)
+                data = df_append(data, [col_name]*bins, division, [label]*bins, count)
         return data
         
     def plot(self, bins = None, vline = None, **kargs):
         for col_name, col_value in zip(self.col_names, self.col_values):
             plot_kde(self.label_uniques, self.label_values, col_name, col_value, gridsize = bins or self.bins, vline = vline, **kargs)
-
-
-def cal_histogram(value, bins):
-    count, division = np.histogram(value, bins=bins)
-    division = [str(division[i]) + '~' + str(division[i+1]) for i in range(len(division)-1)]
-    return count, division
 
 
 def change_xaxis_pos(top):
@@ -177,3 +209,8 @@ def plot_LGBTree(md, tree_index, figsize = (20, 8), show_info = ['split_gain'], 
     #error
     ax = lgb.plot_tree(md, tree_index=tree_index, figsize=figsize, show_info=show_info, **kargs)
     plt.show()
+
+
+def plot_boxnwhisker(feature, value, orient = 'h', **kwarg):
+    plt.figure()
+    sns.boxplot(data = value, orient = orient, **kwarg).set(ylabel=feature)
