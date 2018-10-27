@@ -71,3 +71,4 @@ ipynb_checkpoints/
 /nbs
 nbs/
 *.vscode/
+/notebook/
