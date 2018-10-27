@@ -91,17 +91,3 @@ class LGBLearner(SKLearner):
 class XGBLearner(SKLearner):
     def __init__(self):
         None
-
-
-class ReceiverOperatingCharacteristic:
-    def __init__(self, fpr, tpr, result, roc_auc):
-        self.fpr, self.tpr, self.result, self.roc_auc = fpr, tpr, result, roc_auc
-        
-    @classmethod
-    def from_learner(cls, learner, x, y):
-        fpr, tpr, threshold = metrics.roc_curve(y, learner.predict(x))
-        result = pd.DataFrame.from_dict({'threshold': threshold, 'tpr':tpr, 'fpr':fpr})
-        roc_auc = metrics.auc(fpr, tpr)
-        return cls(fpr, tpr, result, roc_auc)
-    
-    def plot(self): plot_roc_curve(self.fpr, self.tpr, self.roc_auc)

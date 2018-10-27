@@ -42,21 +42,21 @@ Dataset can be built by split method of SKlearn
 
 
 ```python
-ds= TBDataset.from_SKSplit(df_proc, y, cons, cats, ratio = 0.2)
+ds = TBDataset.from_SKSplit(df_proc, y, cons, cats, ratio = 0.2)
 ```
 
 Or by split method of tabint. This method will try to keep the same distribution of categories between training set and validation set.
 
 
 ```python
-ds= TBDataset.from_TBSplit(df_proc, y, cons, cats, ratio = 0.2)
+ds = TBDataset.from_TBSplit(df_proc, y, cons, cats, ratio = 0.2)
 ```
 
 Dataset class contain training set, validation set and test set.
 
 ## Learner
 
-Learner class unify training method from sklearn model, LGBM model and XGB model
+Learner class unify training method from sklearn model
 
 
 ```python
@@ -70,7 +70,7 @@ learner.fit(params, *ds.trn, *ds.val)
     Did not meet early stopping. Best iteration is:
     [100]	training's binary_logloss: 0.23814	valid_1's binary_logloss: 0.247746
 
-
+LGBM model
 
 ```python
 learner = SKLearner(RandomForestClassifier())
@@ -80,9 +80,11 @@ learner.fit(*ds.trn, *ds.val)
     trn accuracy:  0.985715911677669
     val accuracy:  0.9176300343072695
 
+and XGB model (WIP)
 
 ## Feature correlation
 
+tabint use đenogram for easy to see and pick features with high correlation
 
 ```python
 ddg = Dendogram.from_df(ds.x_trn)
@@ -98,6 +100,7 @@ ddg.plot()
 </p>
 
 ## Feature importance
+
 
 tabint use [permutation importance](http://explained.ai/rf-importance/index.html). Each column or group of columns in validation set in dataset will be permute to calculate the importance.
 
@@ -136,7 +139,7 @@ impt.top_features(24)
 
 
 
-Dataset class have method that can edit training set, validation set and test set.
+Dataset class have method that can simultaneously edit training set, validation set and test set.
 
 Drop method can drop one or many columns in training set, validation set and test set.
 
@@ -153,7 +156,7 @@ impt_features = impt.top_features(24)
 ds.keep(impt_features)
 ```
 
-Dataset class in tabint also can apply a funciton to whole training set, validation set and test set
+Dataset class in tabint also can simultaneously apply a funciton to training set, validation set and test set
 
 ```python
 ds.apply('DAYS_BIRTH', lambda df: -df['DAYS_BIRTH']/365)
@@ -205,7 +208,7 @@ pdp.info_target_plot('EXT_SOURCE_3')
 We can see result as table
 
 ```python
-pdp.info_target_result()
+pdp.info_target_data()
 ```
 
 #### isolate plot
@@ -239,8 +242,8 @@ Tf.plot(formatting = "$ {:,.3f}")
 We can see and filter result table
 
 ```python
-Tf.result.pos(5)
-Tf.result.neg(5)
+Tf.data.pos(5)
+Tf.data.neg(5)
 ```
 
 ### SHAP
@@ -265,7 +268,7 @@ Shap.one_force_plot(3)
 And we can see table result also.
 
 ```python
-Shap.one_force_result.pos(5)
+Shap.one_force_data.pos(5)
 ```
 
 <div>
@@ -317,7 +320,7 @@ Shap.one_force_result.pos(5)
 
 
 ```python
-Shap.one_force_result.neg(5)
+Shap.one_force_data.neg(5)
 ```
 
 <div>

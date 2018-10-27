@@ -1,5 +1,4 @@
 from .utils import *
-from .visual import *
 from pandas.api.types import is_string_dtype, is_numeric_dtype
 from sklearn.preprocessing import StandardScaler
 from sklearn_pandas import DataFrameMapper
@@ -53,12 +52,20 @@ class remove_outlier(TBPreProc):
 
 
 def filter_outlier(df, cons):
-    filt =  np.full(df.shape[0], True)
-    for f, v in df[cons].items():
+    mask =  np.full(df.shape[0], True)
+    for v in to_iter(df[cons].values.T):
         Min, _, _, _, Max, _ = boxnwhisker_value(v)
-        inlier = np.logical_and(v.values >= Min, v.values <= Max)
-        filt = np.logical_and(filt, inlier)
-    return df[filt], filt
+        inlier = np.logical_and(v >= Min, v <= Max)
+        mask = np.logical_and(mask, inlier)
+    return df[mask], mask
+
+
+def boxnwhisker_value(values):
+    Median = np.median(values)
+    Q1, Q3 = np.percentile(values, [25,75])
+    IQR = Q3 - Q1
+    Min, Max = Q1 - IQR*1.5, Q3 + IQR*1.5
+    return max(Min, np.min(values)), Q1, Median, Q3, min(Max,np.max(values)), IQR
 
 
 class subset(TBPreProc):

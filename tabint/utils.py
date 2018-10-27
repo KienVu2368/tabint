@@ -27,3 +27,31 @@ def df_append(df, *args):
     df_dict = {}
     for col, val in zip(df.columns, args): df_dict[col] = val
     return df.append(pd.DataFrame.from_dict(df_dict), ignore_index = True)
+
+
+class ResultDF:
+    def __init__(self, df, cons):
+        self.df = df
+        self.cons = to_iter(cons)
+        self.len = df.shape[0]
+    
+    def __call__(self): return self.df
+    
+    def top(self, n=None, features=None): 
+        return self.df.sort_values(by=features or self.cons, ascending=False)[:(n or self.len)]
+
+    def larger_than(self, value, features=None):
+        features = features or self.cons
+        return self.df[self.df[features] >= value].sort_values(by=features, ascending=False)
+
+    def smaller_than(self, value, features=None): 
+        features = features or self.cons
+        return self.df[self.df[features] <= value].sort_values(by=features, ascending=False)
+    
+    def pos(self, n=None, features=None): 
+        features = features or self.cons[0]
+        return self.df[self.df[features]>=0].sort_values(by=features, ascending=False)[:(n or self.len)]
+    
+    def neg(self, n=None, features=None):
+        features = features or self.cons[0]
+        return self.df[self.df[features]<=0].sort_values(by=features, ascending=True)[:(n or self.len)]

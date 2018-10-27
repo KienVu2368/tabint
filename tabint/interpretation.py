@@ -1,7 +1,8 @@
 import pdpbox
 from pdpbox import pdp, info_plots
-from .learner import *
+from .utils import *
 from .pre_processing import *
+from .learner import *
 from matplotlib.colors import LinearSegmentedColormap
 from .dataset import *
 import graphviz
@@ -38,70 +39,68 @@ class PartialDependence:
                 target.append(tgt_name)
         return cls(learner.md, df, features, target)
     
-    def info_target_plot(self, var, sample = 10000, target = None, grid_type = 'percentile', **kargs):
+    def info_target_plot(self, feature, sample = 10000, target = None, grid_type = 'percentile', **kargs):
         fig, axes, result = info_plots.target_plot(
-                df=self.sample(sample), feature=var, feature_name=var, 
+                df=self.sample(sample), feature=feature, feature_name=feature, 
                 target=target or self.target, grid_type = grid_type, **kargs)
-        self.info_target_result =  ResultDF(result, 'count')
+        self.info_target_data =  ResultDF(result, 'count')
 
         _ = axes['bar_ax'].set_xticklabels(self.summary['info_target'].display_column.values)
         plt.show()    
     
-    def info_actual_plot(self, var, sample = 10000, predict_kwds = {}, which_classes=None, **kargs):
+    def info_actual_plot(self, feature, sample = 10000, predict_kwds = {}, which_classes=None, **kargs):
         fig, axes, result = info_plots.actual_plot(
                 model=self.md, 
                 X=self.sample(sample), 
-                feature=var, feature_name=var,
+                feature=feature, feature_name=feature,
                 predict_kwds=predict_kwds, which_classes = which_classes, **kargs)
-        self.info_actual_result =  ResultDF(result, 'count')
+        self.info_actual_data =  ResultDF(result, 'count')
         plt.show()        
     
-    def isolate_plot(self, var, sample = 10000,
+    def isolate_plot(self, feature, sample = 10000,
                 num_grid_points=10, grid_type='percentile',
                 center = True, plot_lines=True, frac_to_plot=100, plot_pts_dist=True, 
                 cluster=True, n_cluster_centers=10, cluster_method='accurate',
                 which_classes= None, **pdp_kargs):
         ft_plot = pdp.pdp_isolate(
                 model=self.md, dataset=self.sample(sample), 
-                model_features = self.features, feature=var,
+                model_features = self.features, feature=feature,
                 num_grid_points=num_grid_points, grid_type=grid_type,
                 n_jobs=-1, **pdp_kargs)
 
         fig, axes = pdp.pdp_plot(
-                pdp_isolate_out=ft_plot, feature_name=var,
+                pdp_isolate_out=ft_plot, feature_name=feature,
                 center=center, plot_lines=plot_lines, frac_to_plot=frac_to_plot, plot_pts_dist=plot_pts_dist, 
                 cluster=cluster, n_cluster_centers=n_cluster_centers, which_classes=which_classes)
         plt.show()
         
-    def target_interact_plot(self, var, var_name = None, target=None,
-                        sample = 10000, show_outliers=True, **kargs):
+    def target_interact_plot(self, feature, var_name = None, target=None, sample = 10000, show_outliers=True, **kargs):
         fig, axes, self.summary['target_interact'] = info_plots.target_plot_interact(
                 df=self.sample(sample), target= target or self.target,
-                features= var, feature_names = var_name or var,
+                features= feature, feature_names = var_name or feature,
                 show_outliers=show_outliers, **kargs)
         plt.show()
         
-    def actual_interact_plot(self, var, var_name = None, 
-                        sample = 10000, which_classes = None, show_outliers=True, **kargs):
+    def actual_interact_plot(self, feature, var_name = None, sample = 10000, which_classes = None, show_outliers=True, **kargs):
         fig, axes, result = info_plots.actual_plot_interact(
                 model = self.md, X = self.sample(sample),
-                features=var, feature_names=var_name or var, 
+                features=feature, feature_names=var_name or feature, 
                 which_classes=which_classes, show_outliers= show_outliers, **kargs)
-        self.actual_interact_result =  ResultDF(result, 'count')
+        self.actual_interact_data =  ResultDF(result, 'count')
         plt.show()
         
-    def pdp_interact_plot(self, var, var_name=None, sample = 10000, which_classes = None,
+    def pdp_interact_plot(self, feature, var_name=None, sample = 10000, which_classes = None,
                      num_grid_points=[10, 10], plot_types = None):        
         ft_plot = pdp.pdp_interact(
                 model=self.md, dataset=self.sample(sample), 
-                model_features=self.features, features=var, 
+                model_features=self.features, features=feature, 
                 num_grid_points=num_grid_points, n_jobs=4)
         
         plot_types = ['contour', 'grid'] if plot_types is None else [plot_types]
         for plot_type in plot_types:
             figs, ax = pdp.pdp_interact_plot(
                 pdp_interact_out = ft_plot, 
-                feature_names = var_name or var, 
+                feature_names = var_name or feature, 
                 plot_type= plot_type, plot_pdp=True, which_classes=which_classes)
         plt.show()
     
@@ -139,7 +138,7 @@ class Shapley:
         s_values = self.shap_values[loc] if loc is not None else self.explainer.shap_values(record)[0]
         col_value = self.df.iloc[[loc]].values if loc is not None else record.values
         result = pd.DataFrame({'feature': self.features, 'feature value': col_value[0], 'Shap value': s_values})
-        self.one_force_result = ResultDF(result, 'Shap value')
+        self.one_force_data = ResultDF(result, 'Shap value')
         return shap.force_plot(self.explainer.expected_value, s_values, features = self.features, plot_cmap = plot_cmap, link = link)
     
     def many_force_plot(self, loc, sample = 10000, plot_cmap = ["#00cc00", "#002266"]):
@@ -163,8 +162,8 @@ class Shapley:
 
 
 class Traterfall:
-    def __init__(self, result):
-        self.result = result
+    def __init__(self, data):
+        self.data = data
         
     @classmethod
     def from_df_loc(cls, learner, df, loc):
@@ -174,11 +173,11 @@ class Traterfall:
     def from_record(cls, learner, record):
         prediction, bias, contributions = ti.predict(learner.md, record)
         contributions = [contributions[0][i][0] for i in range(len(contributions[0]))]
-        df = pd.DataFrame({'feature': df.columns, 'value': record.values, 'contribute': contributions})
-        return cls(ResultDF(df, 'contribute'))
+        data = pd.DataFrame({'feature': df.columns, 'value': record.values, 'contribute': contributions})
+        return cls(ResultDF(data, 'contribute'))
         
     def plot(self, rotation_value=90, threshold=0.2, sorted_value=True, **kargs):
-        my_plot = plot_waterfall(self.result().feature, self.result().contribute, rotation_value, threshold, sorted_value,**kargs)
+        my_plot = plot_waterfall(self.data().feature, self.data().contribute, rotation_value, threshold, sorted_value,**kargs)
 
 
 class DrawTree:

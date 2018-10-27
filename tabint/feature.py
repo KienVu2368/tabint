@@ -1,7 +1,6 @@
 from .utils import *
 from .visual import *
 from .learner import *
-from.dataset import *
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,21 +24,21 @@ class Dendogram:
     """
     plot cluster of feature, to see high correlate feature
     """
-    def __init__(self, z, result, cols):
+    def __init__(self, z, data, fts):
         self.z = z
-        self.result = ResultDF(result, 'dist')
-        self.cols = cols
+        self.data = ResultDF(data, 'distance')
+        self.fts = fts
     
     def chk_ft(self, n):
-        fts = self.ddg_df[:n][['col1', 'col2']].values.tolist()
+        fts = self.ddg_df[:n][['feature 1', 'feature 2']].values.tolist()
         return flat_list(fts)
     
     @classmethod
     def from_df(cls, df):
-        cols = df.columns
+        fts = df.columns
         z = cls.cal_z(df)
-        result = cls.cal_result(z = z , cols = cols)
-        return cls(z, result, cols)
+        data = cls.cal_result(z = z , fts = fts)
+        return cls(z, data, fts)
     
     @staticmethod
     def cal_z(df):
@@ -52,48 +51,45 @@ class Dendogram:
     def get_name(col, i): return '---' if int(i) >= len(col) else col[int(i)]
     
     @classmethod
-    def cal_result(cls, z, cols):
-        result = pd.DataFrame.from_dict({'col1': [cls.get_name(cols, i[0]) for i in z],
-                                         'col2': [cls.get_name(cols, i[1]) for i in z],
-                                         'dist': [i[2] for i in z]})
-        return result
+    def cal_result(cls, z, fts):
+        data = pd.DataFrame.from_dict({'feature 1': [cls.get_name(fts, i[0]) for i in z],
+                                       'feature 2': [cls.get_name(fts, i[1]) for i in z],
+                                       'distance': [i[2] for i in z]})
+        return data
     
     def plot(self):
         plt.figure(figsize=(10,max(self.z.shape[0]//2.6, 5)))
         hc.dendrogram(self.z, 
-                      labels=self.cols, 
+                      labels=self.fts, 
                       orientation='left', 
                       leaf_font_size=16)
         plt.show()
-
-    def group_cols(self, grp):
-        return grp + [i for i in self.cols if i not in flat_list(grp)]
 
 
 class Importance:
     """
     permutation importance. See more at http://explained.ai/rf-importance/index.html
     """
-    def __init__(self, result):
-        self.result = result
+    def __init__(self, data):
+        self.data = data
     
     @classmethod
-    def from_Learner(cls, learner, ds,  group_cols = None, score = roc_auc_score):
+    def from_Learner(cls, learner, ds,  group_fts = None, score = roc_auc_score):
         #to do in parrallel??
-        group_cols = group_cols + [i for i in ds.features if i not in flat_list(group_cols)] if group_cols is not None else ds.features
+        group_fts = group_fts + [i for i in ds.features if i not in flat_list(group_fts)] if group_fts is not None else ds.features
         y_pred = learner.predict(ds.x_val)
         baseline = score(ds.y_val, y_pred)        
-        result = pd.DataFrame.from_dict({'Feature': [' & '.join(to_iter(cols)) for cols in group_cols]})
-        result['Importance'] = result.apply(cls.cal_impt, axis = 1, learner = learner, ds = ds, baseline = baseline, score = score)
-        return cls(ResultDF(result, 'Importance'))
-            
+        data = pd.DataFrame.from_dict({'feature': [' & '.join(to_iter(fts)) for fts in group_fts]})
+        data['importance'] = data.apply(cls.cal_impt, axis = 1, learner = learner, ds = ds, baseline = baseline, score = score)
+        return cls(ResultDF(data, 'importance'))
+
     @staticmethod
     def cal_impt(x, learner, ds, baseline, score):
-        cols = x[0].split(' & ')
-        y_pred_permut = learner.predict(ds.val_permutation(cols))
+        fts = x[0].split(' & ')
+        y_pred_permut = learner.predict(ds.val_permutation(fts))
         permut_score = score(ds.y_val, y_pred_permut)
         return baseline - permut_score
 
-    def top_features(self, n): return flat_list([col.split(' & ') for col in self.result.top().Feature[:n]])
+    def top_features(self, n): return flat_list([col.split(' & ') for col in self.data.top().feature[:n]])
 
-    def plot(self, **kagrs): plot_barh(self.result(), **kagrs)
+    def plot(self, **kagrs): plot_barh(self.data(), **kagrs)

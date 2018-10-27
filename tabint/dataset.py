@@ -77,32 +77,32 @@ class TBDataset:
             x_val, y_val = df[split_id:], y[split_id:]
         return cls(x_trn, y_trn, x_val, y_val, cons, cats, x_tst)
 
-    def val_permutation(self, cols):
+    def val_permutation(self, features):
         """"
         permute one or many columns of validation set. For permutation importance
         """
-        cols = to_iter(cols)
+        features = to_iter(features)
         df = self.x_val.copy()
-        for col in cols: df[col] = np.random.permutation(df[col])
+        for ft in features: df[ft] = np.random.permutation(df[ft])
         return df
 
-    def apply(self, col, f, inplace = True, tp = 'trn'):
+    def apply(self, feature, func, inplace = True, tp = 'trn'):
         """
         apply a function f for all dataset
         """
         if inplace:
-            self.x_trn[col] = f(self.x_trn)
-            self.x_val[col] = f(self.x_val)
-            if self.x_tst is not None: self.x_tst[col] = f(self.x_tst)
-            self.add_col_to_cons_cats(col)            
+            self.x_trn[feature] = func(self.x_trn)
+            self.x_val[feature] = func(self.x_val)
+            if self.x_tst is not None: self.x_tst[feature] = func(self.x_tst)
+            self.add_col_to_cons_cats(feature)            
         else:
             if tp == 'tst':
                 df = self.x_tst.copy()
-                df[col] = f(df)
+                df[feature] = func(df)
                 return df
             else:
                 df, y = (self.x_trn.copy(), self.y_trn) if tp == 'trn' else (self.x_trn.copy(), self.y_trn)
-                df[col] = f(df)
+                df[feature] = func(df)
                 return df, y
 
 
@@ -117,76 +117,76 @@ class TBDataset:
             _, df, _, y = train_test_split(df, y, test_size = ratio, stratify = y)
             return df, y
 
-    def keep(self, col, inplace = True, tp = 'trn'):
+    def keep(self, feature, inplace = True, tp = 'trn'):
         """
         keep columns of dataset
         """
         if inplace:
-            self.x_trn = self.x_trn[col]
-            self.x_val = self.x_val[col]
-            if self.x_tst is not None: self.x_tst = self.x_tst[col]
-            self.keep_col_from_cons_cats(col)          
+            self.x_trn = self.x_trn[feature]
+            self.x_val = self.x_val[feature]
+            if self.x_tst is not None: self.x_tst = self.x_tst[feature]
+            self.keep_col_from_cons_cats(feature)          
         else:
             if tp == 'tst':
-                return None if self.x_tst is None else self.x_tst[col]
+                return None if self.x_tst is None else self.x_tst[feature]
             else:
-                return (self.x_trn[col], self.y_trn) if tp == 'trn' else (self.x_val[col], self.y_val)
+                return (self.x_trn[feature], self.y_trn) if tp == 'trn' else (self.x_val[feature], self.y_val)
 
-    def drop(self, col, inplace = True, tp = 'trn'):
+    def drop(self, feature, inplace = True, tp = 'trn'):
         """
         drop columns of dataset
         """
         if inplace:
-            self.x_trn.drop(col, axis=1, inplace = True)
-            self.x_val.drop(col, axis=1, inplace = True)
-            if self.x_tst is not None: self.x_tst.drop(col, axis=1, inplace = True)
-            self.remove_col_from_cons_cats(col)
+            self.x_trn.drop(feature, axis=1, inplace = True)
+            self.x_val.drop(feature, axis=1, inplace = True)
+            if self.x_tst is not None: self.x_tst.drop(feature, axis=1, inplace = True)
+            self.remove_col_from_cons_cats(feature)
         else:
             if tp == 'tst': 
-                return None if self.x_tst is None else self.x_tst.drop(col, axis = 1)
+                return None if self.x_tst is None else self.x_tst.drop(feature, axis = 1)
             else:
-                return (self.x_trn.drop(col, axis = 1), self.y_trn) if tp == 'trn' else (self.x_val.drop(col, axis = 1), self.y_val)
+                return (self.x_trn.drop(feature, axis = 1), self.y_trn) if tp == 'trn' else (self.x_val.drop(feature, axis = 1), self.y_val)
 
-    def transform(self, tfs):
-        for key in tfs.keys():
+    def transform(self, tfms):
+        for key in tfms.keys():
             if key[:5] == 'apply': 
-                for col in tfs[key]: self.apply(col, tfs[key][col])
-            elif key[:4] == 'drop': self.drop(tfs[key])
-            elif key[:4] == 'keep': self.keep(tfs[key])
+                for feature in tfms[key]: self.apply(feature, tfms[key][feature])
+            elif key[:4] == 'drop': self.drop(tfms[key])
+            elif key[:4] == 'keep': self.keep(tfms[key])
 
-    def remove_col_from_cons_cats(self, col):
-        self.cons = [i for i in self.cons if i not in to_iter(col)]
-        self.cats = [i for i in self.cats if i not in to_iter(col)]
+    def remove_col_from_cons_cats(self, feature):
+        self.cons = [i for i in self.cons if i not in to_iter(feature)]
+        self.cats = [i for i in self.cats if i not in to_iter(feature)]
 
-    def keep_col_from_cons_cats(self, col):
-        self.cons = [i for i in self.cons if i in to_iter(col)]
-        self.cats = [i for i in self.cats if i in to_iter(col)]
+    def keep_col_from_cons_cats(self, feature):
+        self.cons = [i for i in self.cons if i in to_iter(feature)]
+        self.cats = [i for i in self.cats if i in to_iter(feature)]
 
 
-    def add_col_to_cons_cats(self, col):
-        if col not in self.features: 
-            if is_numeric_dtype(self.x_trn[col].values): self.cons.append(col)
-            else: self.cats.append(col)
+    def add_col_to_cons_cats(self, feature):
+        if feature not in self.features: 
+            if is_numeric_dtype(self.x_trn[feature].values): self.cons.append(feature)
+            else: self.cats.append(feature)
 
     def remove_outlier(self, features = None, inplace = True, tp = 'trn'):
         features = features or self.cons
         if inplace:
-            self.x_trn, filt = filter_outlier(self.x_trn, features)
-            self.y_trn = self.y_trn[filt]
+            self.x_trn, mask = filter_outlier(self.x_trn, features)
+            self.y_trn = self.y_trn[mask]
 
-            self.x_val, filt = filter_outlier(self.x_val, features)
-            self.y_val = self.y_val[filt]
+            self.x_val, mask = filter_outlier(self.x_val, features)
+            self.y_val = self.y_val[mask]
 
             self.x_tst = filter_outlier(self.x_tst, features)[0]
         else:
             if tp == 'tst': return filter_outlier(self.x_trn, features)[0]
             else:
                 if tp == 'trn': 
-                    df, filt = filter_outlier(self.x_trn, features)
-                    y = self.y_trn[filt]
+                    df, mask = filter_outlier(self.x_trn, features)
+                    y = self.y_trn[mask]
                 else: 
-                    df, filt = filter_outlier(self.x_val, features)
-                    y = self.y_val[filt]
+                    df, mask = filter_outlier(self.x_val, features)
+                    y = self.y_val[mask]
                 return df, y
 
     @property
@@ -205,34 +205,6 @@ def random_choose(x, pct = 0.1, ratio = 0.2, **kargs):
     """
     n = x.shape[0] if random.uniform(0,1) <= pct else int(np.round(x.shape[0]*(ratio-0.04)))
     return x.sample(n=n, **kargs)
-
-
-class ResultDF:
-    def __init__(self, df, cons):
-        self.result = df
-        self.cons = to_iter(cons)
-        self.len = df.shape[0]
-    
-    def __call__(self): return self.result
-    
-    def top(self, n=None, col=None): 
-        return self.result.sort_values(by=col or self.cons, ascending=False)[:(n or self.len)]
-
-    def larger_than(self, value, col=None):
-        col = col or self.cons
-        return self.result[self.result[col] >= value].sort_values(by=col, ascending=False)
-
-    def smaller_than(self, value, col=None): 
-        col = col or self.cons
-        return self.result[self.result[col] <= value].sort_values(by=col, ascending=False)
-    
-    def pos(self, n=None, col=None): 
-        col = col or self.cons[0]
-        return self.result[self.result[col]>=0].sort_values(by=col, ascending=False)[:(n or self.len)]
-    
-    def neg(self, n=None, col=None):
-        col = col or self.cons[0]
-        return self.result[self.result[col]<=0].sort_values(by=col, ascending=True)[:(n or self.len)]
 
 
 class split_by_cats(StratifiedShuffleSplit):
