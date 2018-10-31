@@ -90,7 +90,7 @@ class PartialDependence:
         plt.show()
         
     def pdp_interact_plot(self, feature, var_name=None, sample = 10000, which_classes = None,
-                     num_grid_points=[10, 10], plot_types = None):        
+                     num_grid_points=[10, 10], plot_types = None, plot_params = {'cmap': ["#00cc00", "#002266"]}):        
         ft_plot = pdp.pdp_interact(
                 model=self.md, dataset=self.sample(sample), 
                 model_features=self.features, features=feature, 
@@ -101,7 +101,8 @@ class PartialDependence:
             figs, ax = pdp.pdp_interact_plot(
                 pdp_interact_out = ft_plot, 
                 feature_names = var_name or feature, 
-                plot_type= plot_type, plot_pdp=True, which_classes=which_classes)
+                plot_type= plot_type, plot_pdp=True, 
+                which_classes=which_classes, plot_params = plot_params)
         plt.show()
     
     def sample(self, sample): return self.df if sample is None else self.df.sample(sample)

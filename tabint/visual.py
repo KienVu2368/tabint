@@ -42,7 +42,7 @@ class Missing(BaseViz):
             data = pd.DataFrame({'feature':df_miss.index, 'missing percent':df_miss.values})
             return cls(ResultDF(data, 'missing percent'))
     
-    def plot(self): return plot_barh(self.data())
+    def plot(self): return plot_barh_from_df(self.data())
 
 
 class Correlation(BaseViz):    
@@ -55,15 +55,24 @@ class Correlation(BaseViz):
         corr_df = corr_df[corr_df['column'] != taget]
         return cls(ResultDF(corr_df, 'corr'))
     
-    def plot(self): return plot_barh(self.data())
+    def plot(self): return plot_barh_from_df(self.data())
 
 
-def plot_barh(df, width = 20, height_ratio = 4):
+def plot_barh_from_df(df, width = 20, height_ratio = 4):
     change_xaxis_pos(True)
     sort_asc(df).plot(x = df.columns[0],
                       kind='barh',
                       figsize=(width, df.shape[0]//height_ratio), 
                       legend=False)
+    change_xaxis_pos(False)
+
+
+def plot_barh_from_series(features, series, figsize = None):
+    if figsize is not None: plt.figure(figsize=figsize)
+    if type(series) == list: series = np.array(series)
+    argsort = np.argsort(series)
+    change_xaxis_pos(True)
+    plt.barh([features[i] for i in argsort], series[argsort])
     change_xaxis_pos(False)
 
 

@@ -24,43 +24,49 @@ class Dendogram:
     """
     plot cluster of feature, to see high correlate feature
     """
-    def __init__(self, z, data, fts):
+    def __init__(self, z, data, features):
         self.z = z
         self.data = ResultDF(data, 'distance')
-        self.fts = fts
+        self.features = features
     
     def chk_ft(self, n):
-        fts = self.ddg_df[:n][['feature 1', 'feature 2']].values.tolist()
-        return flat_list(fts)
+        features = self.ddg_df[:n][['feature 1', 'feature 2']].values.tolist()
+        return flat_list(features)
     
     @classmethod
     def from_df(cls, df):
-        fts = df.columns
-        z = cls.cal_z(df)
-        data = cls.cal_result(z = z , fts = fts)
-        return cls(z, data, fts)
+        features = df.columns
+        values = df.values
+        return cls.from_series(features, values)
+
+    @classmethod
+    def from_series(cls, features, values):
+        if values.shape[0] == len(features): values = values.T; print('values array is tranposed')
+        z = cls.cal_z(values)        
+        data = cls.cal_result(z = z , features = features)
+        return cls(z, data, features)
     
     @staticmethod
-    def cal_z(df):
-        corr = np.round(scipy.stats.spearmanr(df).correlation, 4)
+    def cal_z(values):
+        corr = np.round(scipy.stats.spearmanr(values).correlation, 4)
         corr = np.where(np.isnan(corr), np.random.rand()*1e-3, corr)
         corr_condensed = hc.distance.squareform(1-corr, checks=False)
         return hc.linkage(corr_condensed, method='average')
     
     @staticmethod
-    def get_name(col, i): return '---' if int(i) >= len(col) else col[int(i)]
+    def get_name(features, i): return '---' if int(i) >= len(features) else features[int(i)]
     
     @classmethod
-    def cal_result(cls, z, fts):
-        data = pd.DataFrame.from_dict({'feature 1': [cls.get_name(fts, i[0]) for i in z],
-                                       'feature 2': [cls.get_name(fts, i[1]) for i in z],
-                                       'distance': [i[2] for i in z]})
+    def cal_result(cls, z, features):
+        data = pd.DataFrame.from_dict({'feature 1': [cls.get_name(features, i[0]) for i in z],
+                                       'feature 2': [cls.get_name(features, i[1]) for i in z],
+                                       'distance':  [i[2] for i in z]})
         return data
     
     def plot(self):
         plt.figure(figsize=(10,max(self.z.shape[0]//2.6, 5)))
         hc.dendrogram(self.z, 
-                      labels=self.fts, 
+                      labels=self.features, 
                       orientation='left', 
                       leaf_font_size=16)
         plt.show()
