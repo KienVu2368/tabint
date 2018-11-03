@@ -67,12 +67,24 @@ def plot_barh_from_df(df, width = 20, height_ratio = 4):
     change_xaxis_pos(False)
 
 
-def plot_barh_from_series(features, series, figsize = None):
+def plot_barh_from_series(features, series, figsize = None, absolute = False):
     if figsize is not None: plt.figure(figsize=figsize)
     if type(series) == list: series = np.array(series)
-    argsort = np.argsort(series)
     change_xaxis_pos(True)
-    plt.barh([features[i] for i in argsort], series[argsort])
+    
+    if not absolute: 
+        argsort = np.argsort(series)
+        barh = plt.barh([features[i] for i in argsort], series[argsort],color='g')
+        mask = series[argsort]<0
+    else:
+        series_absolute = np.abs(series)
+        argsort = np.argsort(series_absolute)
+        mask = (series[argsort]<0)[::-1]
+        barh = plt.barh([a[s] for s in argsort], series_absolute[argsort], color='g')
+    
+    for i,m in enumerate(mask): 
+        if m: barh[i].set_color('r')
+    
     change_xaxis_pos(False)
 
 

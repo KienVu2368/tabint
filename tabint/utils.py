@@ -29,6 +29,20 @@ def df_append(df, *args):
     return df.append(pd.DataFrame.from_dict(df_dict), ignore_index = True)
 
 
+def numpy_sample(arr, n_sample, axis=0):
+    if n_sample > arr.shape[axis]: n_sample = arr.shape[axis]
+    mask = np.random.permutation(np.array(list(range(n_sample))))
+    
+    if axis == 0: 
+        if len(arr.shape) == 1: return arr[mask]
+        elif len(arr.shape) == 2: return arr[mask,:]
+        elif len(arr.shape) == 3: return arr[mask,:,:]
+    elif axis == 1: 
+        if len(arr.shape) == 2: return arr[:,mask,:]
+        elif len(arr.shape) == 3: return arr[:,mask,:]
+    elif axis == 2: return arr[:,:,mask]                              
+
+
 class ResultDF:
     def __init__(self, df, cons):
         self.df = df
