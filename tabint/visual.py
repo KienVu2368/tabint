@@ -74,18 +74,19 @@ def plot_barh_from_series(features, series, figsize = None, absolute = False):
     
     if not absolute: 
         argsort = np.argsort(series)
-        barh = plt.barh([features[i] for i in argsort], series[argsort],color='g')
+        barh = plt.barh([features[s] for s in argsort], series[argsort],color='g')
         mask = series[argsort]<0
     else:
         series_absolute = np.abs(series)
         argsort = np.argsort(series_absolute)
         mask = (series[argsort]<0)[::-1]
-        barh = plt.barh([a[s] for s in argsort], series_absolute[argsort], color='g')
+        barh = plt.barh([features[s] for s in argsort], series_absolute[argsort], color='g')
     
     for i,m in enumerate(mask): 
         if m: barh[i].set_color('r')
     
     change_xaxis_pos(False)
+    plt.show()
 
 
 class Histogram(BaseViz):
@@ -209,8 +210,13 @@ class ReceiverOperatingCharacteristic:
         self.fpr, self.tpr, self.data, self.roc_auc = fpr, tpr, data, roc_auc
         
     @classmethod
-    def from_learner(cls, learner, x, y):
-        fpr, tpr, threshold = metrics.roc_curve(y, learner.predict(x))
+    def from_learner(cls, learner, x, y_true):
+        y_pred = learner.predict(x)
+        return cls.from_series(y_true, y_pred)
+
+    @classmethod
+    def from_series(cls, y_true, y_pred): 
+        fpr, tpr, threshold = metrics.roc_curve(y_true, y_pred)
         data = pd.DataFrame.from_dict({'threshold': threshold, 'tpr':tpr, 'fpr':fpr})
         roc_auc = metrics.auc(fpr, tpr)
         return cls(fpr, tpr, data, roc_auc)
