@@ -79,7 +79,7 @@ def plot_barh_from_series(features, series, figsize = None, absolute = False):
     else:
         series_absolute = np.abs(series)
         argsort = np.argsort(series_absolute)
-        mask = (series[argsort]<0)[::-1]
+        mask = (series[argsort]<0)
         barh = plt.barh([features[s] for s in argsort], series_absolute[argsort], color='g')
     
     for i,m in enumerate(mask): 
