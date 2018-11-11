@@ -69,3 +69,11 @@ class ResultDF:
     def neg(self, n=None, features=None):
         features = features or self.cons[0]
         return self.df[self.df[features]<=0].sort_values(by=features, ascending=True)[:(n or self.len)]
+
+
+def save_pickle(fn):
+    with open('feature_dict.pkl', 'wb') as f: pickle.dump(feature_dict, f, pickle.HIGHEST_PROTOCOL)
+
+
+def load_pickle(fn):
+    with open('feature_dict.pkl', 'rb') as f: return pickle.load(f)
