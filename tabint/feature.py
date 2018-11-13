@@ -8,17 +8,6 @@ import scipy
 from scipy.cluster import hierarchy as hc
 from sklearn.metrics import roc_auc_score
 
-#DAE???
-
-def aggreate(df, params, by_col, prefix = 'AGG'):
-    '''
-    mean, median, prod, sum, std, var, max, min, count, nunique, size, nanmedian
-    skew, kurt, iqr
-    '''
-    df_agg = df.groupby(by_col).agg(params)
-    df_agg.columns = ['_'.join([prefix.upper(), c[0], c[1].upper()]) for c in df_agg.columns.tolist()]
-    return df_agg.reset_index()
-
 
 class Dendogram:
     """
@@ -34,24 +23,24 @@ class Dendogram:
         return flat_list(features)
     
     @classmethod
-    def from_df(cls, df):
+    def from_df(cls, df, method = 'average'):
         features = df.columns
         values = df.values
-        return cls.from_series(features, values)
+        return cls.from_series(features, values, method = method)
 
     @classmethod
-    def from_series(cls, features, values):
+    def from_series(cls, features, values, method = 'average'):
         if values.shape[0] == len(features): values = values.T; print('values array is tranposed')
-        z = cls.cal_z(values)        
+        z = cls.cal_z(values, method = method)        
         data = cls.cal_result(z = z , features = features)
         return cls(z, data, features)
     
     @staticmethod
-    def cal_z(values):
+    def cal_z(values, method = 'average'):
         corr = np.round(scipy.stats.spearmanr(values).correlation, 4)
         corr = np.where(np.isnan(corr), np.random.rand()*1e-3, corr)
         corr_condensed = hc.distance.squareform(1-corr, checks=False)
-        return hc.linkage(corr_condensed, method='average')
+        return hc.linkage(corr_condensed, method = method)
     
     @staticmethod
     def get_name(features, i): return '---' if int(i) >= len(features) else features[int(i)]
@@ -77,7 +66,7 @@ class Importance:
     permutation importance. See more at http://explained.ai/rf-importance/index.html
     """
     def __init__(self, data):
-        self.data = data
+        self.data = ResultDF(data, 'importance')
     
     @classmethod
     def from_Learner(cls, learner, ds,  group_fts = None, score = roc_auc_score):
@@ -87,7 +76,7 @@ class Importance:
         baseline = score(ds.y_val, y_pred)        
         data = pd.DataFrame.from_dict({'feature': [' & '.join(to_iter(fts)) for fts in group_fts]})
         data['importance'] = data.apply(cls.cal_impt, axis = 1, learner = learner, ds = ds, baseline = baseline, score = score)
-        return cls(ResultDF(data, 'importance'))
+        return cls(data)
 
     @staticmethod
     def cal_impt(x, learner, ds, baseline, score):
@@ -99,3 +88,13 @@ class Importance:
     def top_features(self, n): return flat_list([col.split(' & ') for col in self.data.top().feature[:n]])
 
     def plot(self, **kagrs): plot_barh(self.data(), **kagrs)
+
+
+def aggreate(df, params, by_col, prefix = 'AGG'):
+    '''
+    mean, median, prod, sum, std, var, max, min, count, nunique, size, nanmedian
+    skew, kurt, iqr
+    '''
+    df_agg = df.groupby(by_col).agg(params)
+    df_agg.columns = ['_'.join([prefix.upper(), c[0], c[1].upper()]) for c in df_agg.columns.tolist()]
+    return df_agg.reset_index()

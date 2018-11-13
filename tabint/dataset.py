@@ -12,11 +12,6 @@ from sklearn.utils.validation import _num_samples, check_array
 from sklearn.model_selection._split import _approximate_mode, _validate_shuffle_split
 from sklearn.utils import indexable, check_random_state, safe_indexing
 
- 
-#imbalance data??? http://www.chioka.in/class-imbalance-problem/
-#subsampling, over sampling?? http://forums.fast.ai/t/unbalanced-data-upsampling-vs-downsampling/20406/4
-#simulators? opimizers
-#mixup augmentation? http://forums.fast.ai/t/mixup-data-augmentation/22764
 
 class TBDataset:
     """
@@ -33,7 +28,7 @@ class TBDataset:
         """
         use sklearn split function to split data
         """
-        x_trn, x_val, y_trn, y_val = train_test_split(df, y, test_size=ratio, stratify = y)
+        x_trn, x_val, y_trn, y_val = train_test_split(df, y, test_size=ratio, stratify = y, **kargs)
         return cls(x_trn, y_trn, x_val, y_val, cons, cats, x_tst)
 
     @classmethod

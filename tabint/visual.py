@@ -68,23 +68,23 @@ def plot_barh_from_df(df, width = 20, height_ratio = 4):
     change_xaxis_pos(False)
 
 
-def plot_barh_from_series(features, series, figsize = None, absolute = False):
+def plot_barh_from_series(features, series, figsize = None, absolute = False, pos_color = 'g', neg_color = 'r'):
     if figsize is not None: plt.figure(figsize=figsize)
     if type(series) == list: series = np.array(series)
     change_xaxis_pos(True)
     
     if not absolute: 
         argsort = np.argsort(series)
-        barh = plt.barh([features[s] for s in argsort], series[argsort],color='g')
+        barh = plt.barh([features[s] for s in argsort], series[argsort],color=pos_color)
         mask = series[argsort]<0
     else:
         series_absolute = np.abs(series)
         argsort = np.argsort(series_absolute)
-        mask = (series[argsort]<0)
-        barh = plt.barh([features[s] for s in argsort], series_absolute[argsort], color='g')
+        mask = series[argsort]<0
+        barh = plt.barh([features[s] for s in argsort], series_absolute[argsort], color=pos_color)
     
     for i,m in enumerate(mask): 
-        if m: barh[i].set_color('r')
+        if m: barh[i].set_color(neg_color)
     
     change_xaxis_pos(False)
     plt.show()
@@ -262,7 +262,7 @@ def plot_line(x_series, y_series, labels, xlabel = None, ylim = None, **kwargs):
     if ylim is not None: plt.ylim(ylim)
     if xlim is not None: plt.xlim(xlim)
     plt.show()
-    
+
 
 def plot_waterfall(Column, contributions, rotation_value=90, threshold=0.2, sorted_value=True, **kargs):
     return waterfall_chart.plot(Column, contributions, rotation_value=rotation_value, threshold=threshold, sorted_value=sorted_value,**kargs)
