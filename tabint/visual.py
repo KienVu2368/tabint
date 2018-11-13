@@ -238,7 +238,7 @@ def plot_roc_curve(fpr, tpr, roc_auc):
 
 
 class PrecisionRecall:
-    def __init__(self, precision, recall, threshold)
+    def __init__(self, precision, recall, threshold):
         self.precision,self.recall,self.threshold = precision, recall, threshold
 
     @classmethod
@@ -256,8 +256,7 @@ class PrecisionRecall:
 
 
 def plot_line(x_series, y_series, labels, xlabel = None, ylim = None, **kwargs):
-    for x_serie, y_serie, labels in zip(to_iter(x_series),to_iter(y_series),to_iter(labels)):
-        plt.plot(x_serie, y_serie, , label, **kwargs)
+    for x_serie, y_serie, labels in zip(to_iter(x_series),to_iter(y_series),to_iter(labels)): plt.plot(x_serie, y_serie, , label, **kwargs)
     if xlabel is not None: plt.xlabel(xlabel)
     if ylim is not None: plt.ylim(ylim)
     if xlim is not None: plt.xlim(xlim)
