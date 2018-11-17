@@ -252,14 +252,20 @@ class PrecisionRecall:
         return cls(precision, recall, threshold)
 
     def plot(self, **kwargs):
-        plot_line([self.threshold]*2, [self.precision[:-1], self.recall[:-1]], ['precision', 'recall'], xlabel = "threshold", **kwargs)
+        plot_line([self.threshold]*2, 
+                  [self.precision[:-1], self.recall[:-1]], 
+                  ['precision', 'recall'], 
+                  ["r--", "b-"], 
+                  xlabel = "threshold", **kwargs)
 
 
-def plot_line(x_series, y_series, labels, xlabel = None, ylim = None, **kwargs):
-    for x_serie, y_serie, labels in zip(to_iter(x_series),to_iter(y_series),to_iter(labels)): plt.plot(x_serie, y_serie, label, **kwargs)
+def plot_line(x_series, y_series, labels, fmts, xlabel = None, xlim = None, ylim = None, **kwargs):    
+    for x_serie, y_serie, label, fmt in zip(to_iter(x_series),to_iter(y_series),to_iter(labels), to_iter(fmts)): 
+        plt.plot(x_serie, y_serie, fmt, label, **kwargs)
     if xlabel is not None: plt.xlabel(xlabel)
     if ylim is not None: plt.ylim(ylim)
     if xlim is not None: plt.xlim(xlim)
+    plt.legend(labels)
     plt.show()
 
 
