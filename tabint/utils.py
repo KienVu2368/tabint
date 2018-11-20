@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import pickle
+import types
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 
@@ -71,9 +73,9 @@ class ResultDF:
         return self.df[self.df[features]<=0].sort_values(by=features, ascending=True)[:(n or self.len)]
 
 
-def save_pickle(fn):
-    with open('feature_dict.pkl', 'wb') as f: pickle.dump(feature_dict, f, pickle.HIGHEST_PROTOCOL)
+def save_pickle(fn, obj):
+    with open(fn, 'wb') as f: pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 
 
 def load_pickle(fn):
-    with open('feature_dict.pkl', 'rb') as f: return pickle.load(f)
+    with open(fn, 'rb') as f: return pickle.load(f)

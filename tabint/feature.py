@@ -87,7 +87,7 @@ class Importance:
 
     def top_features(self, n): return flat_list([col.split(' & ') for col in self.data.top().feature[:n]])
 
-    def plot(self, **kagrs): plot_barh(self.data(), **kagrs)
+    def plot(self, **kagrs): plot_barh_from_df(self.data(), **kagrs)
 
 
 def aggreate(df, params, by_col, prefix = 'AGG'):

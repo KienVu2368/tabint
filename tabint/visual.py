@@ -12,7 +12,8 @@ import graphviz
 from sklearn.tree import export_graphviz
 import IPython
 import re
-from sklearn.metrics import precision_recall_curve
+from sklearn import metrics
+from sklearn.metrics import *
 
 
 def change_xaxis_pos(top):
