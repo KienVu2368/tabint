@@ -126,7 +126,10 @@ class Shapley:
     
     @classmethod
     def from_Tree(cls, learner, ds, sample = 10000):
-        df = ds.remove_outlier(inplace = False)[0].sample(sample).astype(np.float32)
+        df = ds.remove_outlier(inplace = False)[0].sample(sample)
+        for c, v in df.items(): 
+            if v.dtypes.name[:3] == 'int': df[c] = df[c].astype(np.float32)
+        
         explainer = shap.TreeExplainer(learner.md)
         shap_values = explainer.shap_values(df)
         features = df.columns
@@ -160,6 +163,49 @@ class Shapley:
         return shap.dependence_plot(ind = col1, interaction_index = col2, 
                                     shap_values = self.shap_values, features = self.df, 
                                     alpha = alpha, dot_size=dot_size)
+
+
+class Shapley_approx:
+    """https://link.springer.com/article/10.1007/s10115-013-0679-x"""
+    def __init__(self, shap_values, features, data):
+        self.features = features
+        self.shap_values =  shap_values
+        self.data = data
+
+    @classmethod
+    def from_ds(cls, ds):
+        #wip
+        features = ds.features
+        return cls(features)
+
+    @classmethod
+    def from_sequence(cls, learner, seq_df, instance, n_sample, features):
+        df_sample = numpy_sample(seq_df, n_sample, 1)
+        features_permute = np.array([np.random.permutation(i) for i in np.tile(np.array(list(range(len(features)))),(n_sample,1))])
+        shap_values = cal_shap(learner, df_sample, instance, features, features_permute, n_sample)
+        data = pd.DataFrame({'feature': features, 'shap_values': shap_values})
+        return cls(shap_values, features, ResultDF(data, 'shap_values'))
+
+    def construct_seq_instances(self, df_sample, instance, ith, features_permute):
+        b1 = [np.concatenate([instance[:,:,:ith+1],df_sample[:,j:j+1,fts[ith+1:]]],axis=2) for j, fts in enumerate(features_permute)]
+        b1 = np.concatenate(b1,axis=1)
+
+        b2 = [np.concatenate([instance[:,:,:ith],df_sample[:,j:j+1,fts[ith:]]],axis=2) for j, fts in enumerate(features_permute)]
+        b2 = np.concatenate(b2,axis=1)
+        return b1, b2
+
+    def cal_shap(self, learner, df_sample, instance, features, features_permute, n_sample):
+        shap_values = []
+        #to do nested for loop
+        for i,f in enumerate(features):
+            b1, b2 = construct_seq_instances(df_sample, instance, i, features_permute)
+            phi = np.sum(learner.predict(b1) - learner.predict(b2))/n_sample
+            shap_values.append(phi)
+        return shap_values
+
+    def plot(self, absolute=True, **kargs):
+        plot_barh_from_series(self.features, self.shap_values, absolute=absolute, **kargs)
+
 
 
 class Traterfall:

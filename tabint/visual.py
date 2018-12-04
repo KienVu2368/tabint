@@ -284,3 +284,16 @@ def plot_LGBTree(md, tree_index, figsize = (20, 8), show_info = ['split_gain'], 
     # still error
     ax = lgb.plot_tree(md, tree_index=tree_index, figsize=figsize, show_info=show_info, **kargs)
     plt.show()
+
+
+def plot_attention(instance, att_seq, x_label, features, subplot = (5,5), figsize = (10,10), sizes=(50, 200), legend = False, palette="YlGnBu"):
+    fig = plt.figure(figsize=figsize)
+    for f, feature in enumerate(features):
+        fig.add_subplot(*subplot, f+1)
+        sns.lineplot(x=time_range, y=np.squeeze(instance), alpha = 0.2)
+        sns.scatterplot(x=x_label, y=np.squeeze(instance), 
+                        hue=att_seq[:,f], size=att_seq[:,f], 
+                        sizes=sizes, legend = legend, palette=palette)    
+        plt.title(feature)
+    plt.tight_layout()
+    plt.show()

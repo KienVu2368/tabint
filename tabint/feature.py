@@ -73,7 +73,7 @@ class Importance:
         #to do in parrallel??
         group_fts = group_fts + [i for i in ds.features if i not in flat_list(group_fts)] if group_fts is not None else ds.features
         y_pred = learner.predict(ds.x_val)
-        baseline = score(ds.y_val, y_pred)        
+        baseline = score(ds.y_val, y_pred)
         data = pd.DataFrame.from_dict({'feature': [' & '.join(to_iter(fts)) for fts in group_fts]})
         data['importance'] = data.apply(cls.cal_impt, axis = 1, learner = learner, ds = ds, baseline = baseline, score = score)
         return cls(data)

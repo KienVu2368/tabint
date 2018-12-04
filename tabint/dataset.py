@@ -24,11 +24,18 @@ class TBDataset:
         self.cons, self.cats = cons, cats
 
     @classmethod
-    def from_SKSplit(cls, df, y, cons, cats, ratio = 0.2, x_tst = None, **kargs):
+    def from_SKSplit(cls, df, y = None, y_field = None, cats = None, cons = None, ratio = 0.2, x_tst = None, **kargs):
         """
         use sklearn split function to split data
         """
-        x_trn, x_val, y_trn, y_val = train_test_split(df, y, test_size=ratio, stratify = y, **kargs)
+        if y is None: y = df[y_field]; df = df.drop(y_field, axis = 1) 
+
+        stratify = None if y.dtype.name[:5] == 'float' else y
+        x_trn, x_val, y_trn, y_val = train_test_split(df, y, test_size=ratio, stratify = stratify, **kargs)
+        
+        if cons is None and cats is not None: cons = [i for i in df.columns if i not in cats]
+        if cons is not None and cats is None: cats = [i for i in df.columns if i not in cons]
+        
         return cls(x_trn, y_trn, x_val, y_val, cons, cats, x_tst)
 
     @classmethod
@@ -191,7 +198,13 @@ class TBDataset:
     def trn(self): return self.x_trn, self.y_trn
 
     @property
+    def n_trn(self): return self.x_trn.shape[0]
+
+    @property
     def val(self): return self.x_val, self.y_val
+
+    @property
+    def n_val(self): return self.x_val.shape[0]
 
 
 def random_choose(x, pct = 0.1, ratio = 0.2, **kargs):
