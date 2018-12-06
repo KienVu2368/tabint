@@ -28,7 +28,7 @@ class TBDataset:
         """
         use sklearn split function to split data
         """
-        if y is None: y = df[y_field]; df = df.drop(y_field, axis = 1) 
+        if y is None: y = df[y_field]; df = df.copy().drop(y_field, axis = 1) 
 
         stratify = None if y.dtype.name[:5] == 'float' else y
         x_trn, x_val, y_trn, y_val = train_test_split(df, y, test_size=ratio, stratify = stratify, **kargs)

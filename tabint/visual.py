@@ -164,9 +164,9 @@ class KernelDensityEstimation(BaseViz):
         self.bins = bins
 
     @classmethod
-    def from_df(cls, df, label_name, features_namscatterplot
+    def from_df(cls, df, label_name, features_name):
         label_values = df[label_name].values
-        features_value = df[features_name].valuesscatterplot
+        features_value = df[features_name].values
         return cls.from_series(features_name, features_value, label_values, bins)
 
     @classmethod
@@ -256,11 +256,10 @@ def plot_LGBTree(md, tree_index, figsize = (20, 8), show_info = ['split_gain'], 
 
 
 def plot_scatter(x, y, xlabel=None, ylabel=None, title = None, hue=None, **kargs): 
-    sns.scatterplot(pred,ds.y_val, hue=hue, **kargs)
+    sns.scatterplot(x, y, hue=hue, **kargs)
     if xlabel is not None: plt.xlabel(xlabel)
     if ylabel is not None: plt.ylabel(ylabel)
     if title is not None: plt.title(title)
 
 
-def plot_legend(label = None, loc = 'center left', bbox_to_anchor=(1, 0.5)):
-    plt.legend(label = label, loc='center left', bbox_to_anchor=(1, 0.5))
+def plot_legend(loc = 'center left', bbox_to_anchor=(1, 0.5)): plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))

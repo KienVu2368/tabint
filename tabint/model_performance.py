@@ -20,12 +20,12 @@ class model_performace:
         return cls.from_series(y_true, y_pred, **kargs)
 
     @classmethod
-    def from_series(cls, y_true, y_pred, **kargs)
+    def from_series(cls, y_true, y_pred, **kargs):
         res = cls.calculate(y_true, y_pred, **kargs)
         return cls(y_true, y_pred, *res)
     
     @staticmethod
-    def calculate(y_true, y_pred, **kargs)
+    def calculate(y_true, y_pred, **kargs):
         return y_true, y_pred
 
     def plot(self, **kargs): None
@@ -57,7 +57,7 @@ class actual_vs_predict(model_performace):
         concat = np.concatenate([self.actual, self.predict])
         plot_scatter(self.actual, self.predict, xlabel='actual', ylabel='predict', hue=hue)
         plot_bisectrix(np.min(concat), np.max(concat), num)
-        plot_legend()
+        if hue is not None: plot_legend()
 
 
 class ReceiverOperatingCharacteristic(model_performace):

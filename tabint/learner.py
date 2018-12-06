@@ -20,16 +20,13 @@ from sklearn.metrics import *
 #todo learning rate finder for learner?
 #optimizer
 
-
-class SKLearner:
+class BaseLeaner:
     def __init__(self, md):
         self.md = md
-        
-    def fit(self, x_trn, y_trn, x_val, y_val, save = False, fn = 'SKTree', **kargs):
-        self.md.fit(x_trn, y_trn, **kargs)        
-        print('trn score: ', self.md.score(x_trn, y_trn))
-        print('val score: ', self.md.score(x_val, y_val))
-        if save: self.save(fn)
+
+    def fit_from_ds(self, ds, save = False, fn = 'model', **kargs): self.fit(*ds.trn, *ds.val, save = save, fn = fn, **kargs)
+
+    def fit(self, x_trn, y_trn, x_val, y_val, save = False, fn = 'SKTree', **kargs): self.md.fit(x_trn, y_trn, **kargs)
 
     def predict(self, df, **kargs): return self.md.predict(df, **kargs)
 
@@ -37,27 +34,36 @@ class SKLearner:
 
     def predict_log_proba(self, df, **kargs): return self.md.predict_log_proba(df, **kargs)
 
+    def load(self, fn): pass
+        
+    def save(self, fn): pass
+
+
+class SKLearner(BaseLeaner):        
+    def fit(self, x_trn, y_trn, x_val, y_val, save = False, fn = 'SKTree', **kargs):
+        self.md.fit(x_trn, y_trn, **kargs)        
+        print('trn score: ', self.md.score(x_trn, y_trn))
+        print('val score: ', self.md.score(x_val, y_val))
+        if save: self.save(fn)
+
     def load(self, fn): self.md = joblib.load(fn + '.joblib')
         
     def save(self, fn): joblib.dump(self.md, fn + '.joblib')
 
 
-class LGBLearner(SKLearner):
+class LGBLearner(BaseLeaner):
     """
     Contain model and its method: learning rate, callbacks, loss function...
     """
     def __init__(self):
         self.score = []
         
-    def fit(self, params, x_trn, y_trn, x_val, y_val,
-            lrts = None, callbacks = None, 
-            fobj=None, feval=None,
-            ctn=False, save=False, fn = 'LGB_Model', 
-            early_stopping_rounds=100, verbose_eval = 100, **kargs):
-        if ctn:
-            self.load(fn)
-        else:
-            self.md = None
+    def fit(self, x_trn, y_trn, x_val, y_val, save=False, fn = 'LGB_Model',
+            params = {}, lrts = None, callbacks = None, fobj=None, feval=None,
+            ctn=False, early_stopping_rounds=100, verbose_eval = 100, **kargs):
+        if ctn: self.load(fn)
+        else:   self.md = None
+
         lgb_trn, lgb_val = self.LGBDataset(x_trn, y_trn, x_val, y_val)
         self.md = lgb.train(params = params,
                             train_set = lgb_trn,
