@@ -86,7 +86,6 @@ def plot_barh_from_series(features, series, figsize = None, absolute = False, po
         if m: barh[i].set_color(neg_color)
     
     change_xaxis_pos(False)
-    plt.show()
 
 
 class Histogram(BaseViz):
@@ -217,7 +216,6 @@ def plot_roc_curve(fpr, tpr, roc_auc):
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.show()
 
 
 def plot_line(x_series, y_series, labels = None, fmts = None, xlabel = None, xlim = None, ylim = None, **kwargs):
@@ -252,7 +250,6 @@ def plot_SKTree(es, features, precision=0, size=10, ratio=0.6, **kargs):
 def plot_LGBTree(md, tree_index, figsize = (20, 8), show_info = ['split_gain'], **kargs):
     # still error
     ax = lgb.plot_tree(md, tree_index=tree_index, figsize=figsize, show_info=show_info, **kargs)
-    plt.show()
 
 
 def plot_scatter(x, y, xlabel=None, ylabel=None, title = None, hue=None, **kargs): 

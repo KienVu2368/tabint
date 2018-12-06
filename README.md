@@ -38,6 +38,8 @@ class fill_na(TBPreProc):
 
 ## Dataset
 
+Dataset class contain training set, validation set and test set.
+
 Dataset can be built by split method of SKlearn
 
 
@@ -45,14 +47,54 @@ Dataset can be built by split method of SKlearn
 ds = TBDataset.from_SKSplit(df_proc, y, cons, cats, ratio = 0.2)
 ```
 
-Or by split method of tabint. This method will try to keep the same distribution of categories between training set and validation set.
+Or by split method of tabint. This method will try to keep the same distribution of categorie variables between training set and validation set.
 
 
 ```python
 ds = TBDataset.from_TBSplit(df_proc, y, cons, cats, ratio = 0.2)
 ```
+Dataset class have method that can simultaneously edit training set, validation set and test set.
 
-Dataset class contain training set, validation set and test set.
+Drop method can drop one or many columns in training set, validation set and test set.
+
+
+```python
+ds.drop('DAYS_LAST_PHONE_CHANGE_na')
+```
+
+Or if we need to keep only importance columns that we found above. Just use keep method from dataset.
+
+
+```python
+impt_features = impt.top_features(24)
+ds.keep(impt_features)
+```
+
+Dataset class in tabint also can simultaneously apply a funciton to training set, validation set and test set
+
+```python
+ds.apply('DAYS_BIRTH', lambda df: -df['DAYS_BIRTH']/365)
+```
+
+Or we can pass many transformation function at once.
+
+```python
+tfs =  {'drop 1': ['AMT_REQ_CREDIT_BUREAU_HOUR_na', 'AMT_REQ_CREDIT_BUREAU_YEAR_na'],
+    
+        'apply':{'DAYS_BIRTH': lambda df: -df['DAYS_BIRTH']/365,
+                 'DAYS_EMPLOYED': lambda df: -df['DAYS_EMPLOYED']/365,
+                 'NEW_EXT_SOURCES_MEAN': lambda df: df[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3']].mean(axis=1, skipna=True),
+                 'NEW_EXT_SOURCES_GEO': lambda df: (df['EXT_SOURCE_1']*df['EXT_SOURCE_2']*df['EXT_SOURCE_3'])**(1/3),
+                 'AMT_CREDIT/AMT_GOODS_PRICE': lambda df: df['AMT_CREDIT']/df['AMT_GOODS_PRICE'],
+                 'AMT_CREDIT/AMT_CREDIT': lambda df: df['AMT_CREDIT']/df['AMT_CREDIT'],
+                 'DAYS_EMPLOYED/DAYS_BIRTH': lambda df: df['DAYS_EMPLOYED']/df['DAYS_BIRTH'],
+                 'DAYS_BIRTH*EXT_SOURCE_1_na': lambda df: df['DAYS_BIRTH']*df['EXT_SOURCE_1_na']},
+    
+        'drop 2': ['AMT_ANNUITY', 'AMT_CREDIT', 'AMT_GOODS_PRICE']}
+
+ds.transform(tfs)
+```
+
 
 ## Learner
 
@@ -138,48 +180,6 @@ impt.top_features(24)
 ```
 
 
-
-Dataset class have method that can simultaneously edit training set, validation set and test set.
-
-Drop method can drop one or many columns in training set, validation set and test set.
-
-
-```python
-ds.drop('DAYS_LAST_PHONE_CHANGE_na')
-```
-
-Or if we need to keep only importance columns that we found above. Just use keep method from dataset.
-
-
-```python
-impt_features = impt.top_features(24)
-ds.keep(impt_features)
-```
-
-Dataset class in tabint also can simultaneously apply a funciton to training set, validation set and test set
-
-```python
-ds.apply('DAYS_BIRTH', lambda df: -df['DAYS_BIRTH']/365)
-```
-
-Or we can pass many transformation function at once.
-
-```python
-tfs =  {'drop 1': ['AMT_REQ_CREDIT_BUREAU_HOUR_na', 'AMT_REQ_CREDIT_BUREAU_YEAR_na'],
-    
-        'apply':{'DAYS_BIRTH': lambda df: -df['DAYS_BIRTH']/365,
-                 'DAYS_EMPLOYED': lambda df: -df['DAYS_EMPLOYED']/365,
-                 'NEW_EXT_SOURCES_MEAN': lambda df: df[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3']].mean(axis=1, skipna=True),
-                 'NEW_EXT_SOURCES_GEO': lambda df: (df['EXT_SOURCE_1']*df['EXT_SOURCE_2']*df['EXT_SOURCE_3'])**(1/3),
-                 'AMT_CREDIT/AMT_GOODS_PRICE': lambda df: df['AMT_CREDIT']/df['AMT_GOODS_PRICE'],
-                 'AMT_CREDIT/AMT_CREDIT': lambda df: df['AMT_CREDIT']/df['AMT_CREDIT'],
-                 'DAYS_EMPLOYED/DAYS_BIRTH': lambda df: df['DAYS_EMPLOYED']/df['DAYS_BIRTH'],
-                 'DAYS_BIRTH*EXT_SOURCE_1_na': lambda df: df['DAYS_BIRTH']*df['EXT_SOURCE_1_na']},
-    
-        'drop 2': ['AMT_ANNUITY', 'AMT_CREDIT', 'AMT_GOODS_PRICE']}
-
-ds.transform(tfs)
-```
 ## Model performance
 
 ### Classification problem

@@ -23,6 +23,9 @@ class Dendogram:
         return flat_list(features)
     
     @classmethod
+    def from_ds(cls, ds, method = 'average'): return cls.from_df(ds.x_val, method)
+
+    @classmethod
     def from_df(cls, df, method = 'average'):
         features = df.columns
         values = df.values
@@ -58,7 +61,6 @@ class Dendogram:
                       labels=self.features, 
                       orientation='left', 
                       leaf_font_size=16)
-        plt.show()
 
 
 class Importance:

@@ -22,7 +22,7 @@ class model_performace:
     @classmethod
     def from_series(cls, y_true, y_pred, **kargs):
         res = cls.calculate(y_true, y_pred, **kargs)
-        return cls(y_true, y_pred, *res)
+        return cls(y_true, y_pred, res, **kargs)
     
     @staticmethod
     def calculate(y_true, y_pred, **kargs):
