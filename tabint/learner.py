@@ -27,8 +27,8 @@ class SKLearner:
         
     def fit(self, x_trn, y_trn, x_val, y_val, save = False, fn = 'SKTree', **kargs):
         self.md.fit(x_trn, y_trn, **kargs)        
-        print('trn accuracy: ', self.md.score(x_trn, y_trn))
-        print('val accuracy: ', self.md.score(x_val, y_val))
+        print('trn score: ', self.md.score(x_trn, y_trn))
+        print('val score: ', self.md.score(x_val, y_val))
         if save: self.save(fn)
 
     def predict(self, df, **kargs): return self.md.predict(df, **kargs)

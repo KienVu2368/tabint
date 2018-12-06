@@ -166,9 +166,9 @@ class KernelDensityEstimation(BaseViz):
         self.bins = bins
 
     @classmethod
-    def from_df(cls, df, label_name, features_name, bins = 50):
+    def from_df(cls, df, label_name, features_namscatterplot
         label_values = df[label_name].values
-        features_value = df[features_name].values
+        features_value = df[features_name].valuesscatterplot
         return cls.from_series(features_name, features_value, label_values, bins)
 
     @classmethod
@@ -260,14 +260,23 @@ class PrecisionRecall:
                   xlabel = "threshold", **kwargs)
 
 
-def plot_line(x_series, y_series, labels, fmts, xlabel = None, xlim = None, ylim = None, **kwargs):    
-    for x_serie, y_serie, label, fmt in zip(to_iter(x_series),to_iter(y_series),to_iter(labels), to_iter(fmts)): 
-        plt.plot(x_serie, y_serie, fmt, label, **kwargs)
+def plot_line(x_series, y_series, labels = None, fmts = None, xlabel = None, xlim = None, ylim = None, **kwargs):
+    length = len(to_iter(x_series))
+    if fmts is None: fmts = [None]*length
+    if labels is None: labels_ = [None]*length
+    for x_serie, y_serie, label, fmt in zip(to_iter(x_series),to_iter(y_series),to_iter(labels_), to_iter(fmts)):
+        params = [x_serie, y_serie]
+        if fmt is not None: params.append(fmt)
+        if label is not None: params.append(label)
+        plt.plot(*params, **kwargs)
     if xlabel is not None: plt.xlabel(xlabel)
     if ylim is not None: plt.ylim(ylim)
     if xlim is not None: plt.xlim(xlim)
-    plt.legend(labels)
-    plt.show()
+
+
+def plot_bisectrix(start = 0, stop = 10, num = 20, **kargs):
+    obs = np.linspace(start = start, stop = stop, num = num)
+    plot_line(obs, obs, **kargs)
 
 
 def plot_waterfall(Column, contributions, rotation_value=90, threshold=0.2, sorted_value=True, **kargs):
@@ -286,14 +295,33 @@ def plot_LGBTree(md, tree_index, figsize = (20, 8), show_info = ['split_gain'], 
     plt.show()
 
 
-def plot_attention(instance, att_seq, x_label, features, subplot = (5,5), figsize = (10,10), sizes=(50, 200), legend = False, palette="YlGnBu"):
-    fig = plt.figure(figsize=figsize)
-    for f, feature in enumerate(features):
-        fig.add_subplot(*subplot, f+1)
-        sns.lineplot(x=time_range, y=np.squeeze(instance), alpha = 0.2)
-        sns.scatterplot(x=x_label, y=np.squeeze(instance), 
-                        hue=att_seq[:,f], size=att_seq[:,f], 
-                        sizes=sizes, legend = legend, palette=palette)    
-        plt.title(feature)
-    plt.tight_layout()
-    plt.show()
+def plot_scatter(x, y, xlabel=None, ylabel=None, title = None, hue=None, **kargs): 
+    sns.scatterplot(pred,ds.y_val, hue=hue, **kargs)
+    if xlabel is not None: plt.xlabel(xlabel)
+    if ylabel is not None: plt.ylabel(ylabel)
+    if title is not None: plt.title(title)
+
+
+class actual_vs_predicted:
+    def __init__(self, actual, predict, df, data):
+        self.actual, self.predict = actual, predict
+        self.df, self.data = df, data
+        
+    @classmethod
+    def from_learner(cls, learner, ds):
+        actual = ds.y_val
+        predict = learner.predict(ds.x_val)
+        data = cls.calculate(actual, predict)
+        return cls(actual, predict, ds.x_val, data)
+    
+    @staticmethod
+    def calculate(actual, predict):
+        data = pd.DataFrame({'actual':actual, 'predict':predict, 'mse': (actual-predict)**2})
+        return ResultDF(data, 'mse')
+    
+    def plot(self, hue = None, num = 100, **kagrs):
+        if hue is not None: hue = self.df[hue]
+        concat = np.concatenate([self.actual, self.predict])
+        plot_scatter(self.actual, self.predict, xlabel='actual', ylabel='predict', hue=hue)
+        plot_bisectrix(np.min(concat), np.max(concat), num)
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))

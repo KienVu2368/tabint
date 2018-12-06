@@ -116,7 +116,7 @@ class dummies(TBPreProc):
     @staticmethod
     def func(df, pp_outp):
         df = pd.get_dummies(df, dummy_na=True)
-        pp_outp['cats'] = [i for i in df.columns if i not in pp_outp['cons']]
+        if 'cons' in pp_outp.keys(): pp_outp['cats'] = [i for i in df.columns if i not in pp_outp['cons']]
         return df
 
 
