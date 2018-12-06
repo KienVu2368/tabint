@@ -180,6 +180,49 @@ tfs =  {'drop 1': ['AMT_REQ_CREDIT_BUREAU_HOUR_na', 'AMT_REQ_CREDIT_BUREAU_YEAR_
 
 ds.transform(tfs)
 ```
+## Model performance
+
+### Classification problem
+#### Receiver operating characteristic
+
+```python
+roc = ReceiverOperatingCharacteristic.from_learner(learner, *ds.val)
+roc.plot()
+```
+<p align="center">
+  <img src="/media/zero/dropbox/Dropbox/Data science project/tabint/docs/roc.png" />
+</p>
+
+#### Probability distribution
+
+```python
+kde = KernelDensityEstimation.from_learner(learner, *ds.val)
+kde.plot()
+```
+<p align="center">
+  <img src="/media/zero/dropbox/Dropbox/Data science project/tabint/docs/prob_dist.png" />
+</p>
+
+#### Precision and Recall
+
+```python
+pr = PrecisionRecall.from_series(db.valid_ds.y, preds)
+pr.plot()
+```
+<p align="center">
+  <img src="/media/zero/dropbox/Dropbox/Data science project/tabint/docs/prescision_n_recall.png" />
+</p>
+
+### Regression problem
+
+#### Actual vs Predict
+```python
+avp = actual_vs_predict.from_learner(learner, ds)
+avp.plot(hue = 'Height')
+```
+<p align="center">
+  <img src="/media/zero/dropbox/Dropbox/Data science project/tabint/docs/actual_vs_predict.png" />
+</p>
 
 
 ## Interpretation and explaination

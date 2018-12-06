@@ -12,8 +12,6 @@ import graphviz
 from sklearn.tree import export_graphviz
 import IPython
 import re
-from sklearn import metrics
-from sklearn.metrics import *
 
 
 def change_xaxis_pos(top):
@@ -172,7 +170,10 @@ class KernelDensityEstimation(BaseViz):
         return cls.from_series(features_name, features_value, label_values, bins)
 
     @classmethod
-    def from_learner(cls, learner, x, y, bins = 50): return cls.from_series('prob', learner.predict(x), y, bins)
+    def from_learner(cls, learner, ds, bins = 50): 
+        y_predict = learner.predict(ds.x_val)
+        y_true = ds.y_val
+        return cls.from_series('prob', y_predict, y_true, bins)
 
     @classmethod
     def from_series(cls, features_name, features_value, label_values, bins = 50):
@@ -207,25 +208,6 @@ def plot_kde(label_uniques, label_values, col_name, col_value, vline = None, fig
     plt.ylabel('Density')
 
 
-class ReceiverOperatingCharacteristic:
-    def __init__(self, fpr, tpr, data, roc_auc):
-        self.fpr, self.tpr, self.data, self.roc_auc = fpr, tpr, data, roc_auc
-        
-    @classmethod
-    def from_learner(cls, learner, x, y_true):
-        y_pred = learner.predict(x)
-        return cls.from_series(y_true, y_pred)
-
-    @classmethod
-    def from_series(cls, y_true, y_pred): 
-        fpr, tpr, threshold = metrics.roc_curve(y_true, y_pred)
-        data = pd.DataFrame.from_dict({'threshold': threshold, 'tpr':tpr, 'fpr':fpr})
-        roc_auc = metrics.auc(fpr, tpr)
-        return cls(fpr, tpr, data, roc_auc)
-    
-    def plot(self): plot_roc_curve(self.fpr, self.tpr, self.roc_auc)
-
-
 def plot_roc_curve(fpr, tpr, roc_auc):
     plt.title('Receiver Operating Characteristic')
     plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
@@ -236,28 +218,6 @@ def plot_roc_curve(fpr, tpr, roc_auc):
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
     plt.show()
-
-
-class PrecisionRecall:
-    def __init__(self, precision, recall, threshold):
-        self.precision,self.recall,self.threshold = precision, recall, threshold
-
-    @classmethod
-    def from_learner(cls, learner, x, y_true):
-        y_pred = learner.predict(x)
-        return cls.from_series(y_true, y_pred)
-
-    @classmethod
-    def from_series(cls, y_true, y_pred):
-        precision, recall, threshold = precision_recall_curve(y_true, y_pred)
-        return cls(precision, recall, threshold)
-
-    def plot(self, **kwargs):
-        plot_line([self.threshold]*2, 
-                  [self.precision[:-1], self.recall[:-1]], 
-                  ['precision', 'recall'], 
-                  ["r--", "b-"], 
-                  xlabel = "threshold", **kwargs)
 
 
 def plot_line(x_series, y_series, labels = None, fmts = None, xlabel = None, xlim = None, ylim = None, **kwargs):
@@ -302,26 +262,5 @@ def plot_scatter(x, y, xlabel=None, ylabel=None, title = None, hue=None, **kargs
     if title is not None: plt.title(title)
 
 
-class actual_vs_predicted:
-    def __init__(self, actual, predict, df, data):
-        self.actual, self.predict = actual, predict
-        self.df, self.data = df, data
-        
-    @classmethod
-    def from_learner(cls, learner, ds):
-        actual = ds.y_val
-        predict = learner.predict(ds.x_val)
-        data = cls.calculate(actual, predict)
-        return cls(actual, predict, ds.x_val, data)
-    
-    @staticmethod
-    def calculate(actual, predict):
-        data = pd.DataFrame({'actual':actual, 'predict':predict, 'mse': (actual-predict)**2})
-        return ResultDF(data, 'mse')
-    
-    def plot(self, hue = None, num = 100, **kagrs):
-        if hue is not None: hue = self.df[hue]
-        concat = np.concatenate([self.actual, self.predict])
-        plot_scatter(self.actual, self.predict, xlabel='actual', ylabel='predict', hue=hue)
-        plot_bisectrix(np.min(concat), np.max(concat), num)
-        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+def plot_legend(label = None, loc = 'center left', bbox_to_anchor=(1, 0.5)):
+    plt.legend(label = label, loc='center left', bbox_to_anchor=(1, 0.5))
