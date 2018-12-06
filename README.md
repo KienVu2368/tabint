@@ -186,31 +186,31 @@ ds.transform(tfs)
 #### Receiver operating characteristic
 
 ```python
-roc = ReceiverOperatingCharacteristic.from_learner(learner, *ds.val)
+roc = ReceiverOperatingCharacteristic.from_learner(learner, ds)
 roc.plot()
 ```
 <p align="center">
-  <img src="/media/zero/dropbox/Dropbox/Data science project/tabint/docs/roc.png" />
+  <img src="https://raw.githubusercontent.com/KienVu2368/tabint/master/docs/roc.png" />
 </p>
 
 #### Probability distribution
 
 ```python
-kde = KernelDensityEstimation.from_learner(learner, *ds.val)
+kde = KernelDensityEstimation.from_learner(learner, ds)
 kde.plot()
 ```
 <p align="center">
-  <img src="/media/zero/dropbox/Dropbox/Data science project/tabint/docs/prob_dist.png" />
+  <img src="https://raw.githubusercontent.com/KienVu2368/tabint/master/docs/prob_dist.png" />
 </p>
 
 #### Precision and Recall
 
 ```python
-pr = PrecisionRecall.from_series(db.valid_ds.y, preds)
+pr = PrecisionRecall.from_series(y_true, y_pred)
 pr.plot()
 ```
 <p align="center">
-  <img src="/media/zero/dropbox/Dropbox/Data science project/tabint/docs/prescision_n_recall.png" />
+  <img src="https://raw.githubusercontent.com/KienVu2368/tabint/master/docs/prescision_n_recall.png" />
 </p>
 
 ### Regression problem
@@ -221,7 +221,7 @@ avp = actual_vs_predict.from_learner(learner, ds)
 avp.plot(hue = 'Height')
 ```
 <p align="center">
-  <img src="/media/zero/dropbox/Dropbox/Data science project/tabint/docs/actual_vs_predict.png" />
+  <img src="https://raw.githubusercontent.com/KienVu2368/tabint/master/docs/actual_vs_predict.png" />
 </p>
 
 
