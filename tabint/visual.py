@@ -24,36 +24,48 @@ def change_xaxis_pos(top):
 
 
 class BaseViz:
-    def __init__(self, data): self.data = data
+    def __init__(self, *kargs, **kargs):
+        self.data = data
         
     @classmethod
-    def from_df(cls, df): None
+    def from_learner(cls, *kargs, **kargs): pass  
+    
+    @classmethod
+    def from_df(cls, *kargs, **kargs):
+        data = cls.calculate(*kargs, **kargs)
+        return cls(data)
 
-    def plot(self, df): return None
+    @classmethod
+    def from_series(cls, *kargs, **kargs): pass
+
+    @staticmethod
+    def calculate(*kargs, **kargs): pass
+
+    def plot(self, *kargs, **kagrs): pass
 
 
 class Missing(BaseViz):
-    @classmethod
-    def from_df(cls, df):
+    @staticmethod
+    def calculate(df):
         df_miss = df.isnull().sum()/len(df)*100
         df_miss = df_miss[df_miss > 0]
         if df_miss.shape[0] == 0: print('no missing data'); return None
         else:
             data = pd.DataFrame({'feature':df_miss.index, 'missing percent':df_miss.values})
             return cls(ResultDF(data, 'missing percent'))
-    
+
     def plot(self): return plot_barh_from_df(self.data())
 
 
-class Correlation(BaseViz):    
-    @classmethod
-    def from_df(cls, df, taget):
-        correlations = df.corr()[taget]
+class Correlation(BaseViz):
+    @staticmethod
+    def calculate(df, target):
+        correlations = df.corr()[target]
         corr_df = pd.DataFrame({'feature': correlations.index, 'corr':correlations.values})
         corr_df['neg'] = corr_df['corr'] < 0
         corr_df['corr'] = abs(corr_df['corr'])
-        corr_df = corr_df[corr_df['column'] != taget]
-        return cls(ResultDF(corr_df, 'corr'))
+        corr_df = corr_df[corr_df['column'] != target]
+        return ResultDF(corr_df, 'corr')
     
     def plot(self): return plot_barh_from_df(self.data())
 
@@ -89,12 +101,13 @@ def plot_barh_from_series(features, series, figsize = None, absolute = False, po
 
 
 class Histogram(BaseViz):
-    def __init__(self, plot_df, data, bins): 
-        self.plot_df, self.data, self.bins = plot_df, data, bins
+    def __init__(self, data, plot_df, bins):
+        super().__init__()
+        self.plot_df, self.bins = plot_df, bins
     
     @classmethod
     def from_df(cls, df, cols = None, bins=20):
-        plot_df = plot_df = df.copy() if cols is None else df[to_iter(cols)]
+        plot_df = df.copy() if cols is None else df[to_iter(cols)]
         data = cls.calculate(plot_df, bins)
         return cls(plot_df, data, bins)
     
@@ -103,13 +116,10 @@ class Histogram(BaseViz):
         result = pd.DataFrame(columns=['feature', 'division', 'count'])
         for col, value in df.items():
             count, division = cal_histogram(value, bins)
-            data = df_append(result, [col]*bins, division, count)
+            data = df_append(result, [[col]*bins, division, count])
         return ResultDF(data, 'count')
     
-    def __getitem__(self, key): return self.data.__getitem__(key)
-    
-    def plot(self, bins = None):
-        return plot_hist(self.plot_df, bins = bins or self.bins)
+    def plot(self, bins = None): return plot_hist(self.plot_df, bins = bins or self.bins)
 
 
 def cal_histogram(value, bins):
@@ -128,9 +138,9 @@ def plot_hist(df,  bins = 20):
 
 
 class BoxnWhisker(BaseViz):
-    def __init__(self, features, values, data):
+    def __init__(self, data, features, values):
+        super().__init__()
         self.features, self.values = features, values
-        self.data = data
         
     @classmethod
     def from_df(cls, df, features = None):
@@ -140,11 +150,16 @@ class BoxnWhisker(BaseViz):
     
     @classmethod
     def from_series(cls, features, values):
+        data = cls.calculate(features, values))
+        return cls(data, to_iter(features), to_iter(values))
+
+    @staticmethod
+    def calculate(features, values):
         data = pd.DataFrame(columns=['feature', 'min', 'q1', 'median', 'q3', 'max'])
-        for f, v in zip(features, values): 
+        for ft, v in zip(features, values): 
             Min, Q1, Median, Q3, Max, _ = boxnwhisker_value(v)
-            data = df_append(data, [f], [Min], [Q1], [Median], [Q3], [Max])
-        return cls(to_iter(features), to_iter(values), data)
+            data = df_append(data, [ft, Min, Q1, Median, Q3, Max])
+        return data
 
     def plot(self, orient = 'h', **kwarg): 
         for f, v in zip(self.features, self.values): plot_boxnwhisker(f, v, orient = orient, **kwarg)
@@ -157,7 +172,7 @@ def plot_boxnwhisker(feature_name, value, orient = 'h', **kwarg):
 
 class KernelDensityEstimation(BaseViz):
     def __init__(self, data, label_uniques, label_values, features_name, features_value, bins):
-        self.data = data
+        super().__init__()
         self.label_uniques, self.label_values = label_uniques, label_values
         self.features_name, self.features_value = features_name, features_value
         self.bins = bins

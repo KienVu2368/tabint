@@ -11,15 +11,6 @@ from sklearn import metrics
 from sklearn.metrics import *
 
 
-
-##psedou labeling??
-#denoising autoencoder?? https://www.kaggle.com/c/porto-seguro-safe-driver-prediction/discussion/44629
-##time dependency check https://youtu.be/3jl2h9hSRvc?t=48m50s
-##hyper parameter tuning??
-##essemble method - low priority
-#todo learning rate finder for learner?
-#optimizer
-
 class BaseLeaner:
     def __init__(self, md):
         self.md = md
@@ -30,9 +21,15 @@ class BaseLeaner:
 
     def predict(self, df, **kargs): return self.md.predict(df, **kargs)
 
+    def predict_from_original(self, df, tfms, **kargs): self.predict(tfms.transform(df), **kargs)
+
     def predict_proba(self, df, **kargs): return self.md.predict_proba(df, **kargs)
 
+    def predict_proba_from_original(self, df, tfms, **kargs): self.predict_proba(tfms.transform(df), **kargs)
+
     def predict_log_proba(self, df, **kargs): return self.md.predict_log_proba(df, **kargs)
+
+    def predict_log_proba_from_original(self, df, tfms, **kargs): self.predict_log_proba(tfms.transform(df), **kargs)
 
     def load(self, fn): pass
         

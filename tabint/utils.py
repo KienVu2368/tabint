@@ -8,6 +8,12 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 def na_rm(x): return x[~np.isnan(x)]
 
 
+def unique_list(*agrs):
+    lists = []
+    for agr in agrs: lists += list(agr)
+    return list(set(lists))
+
+
 def to_iter(col): 
     if type(col) == np.ndarray: 
         if len(col.shape) == 1: return np.array([col])
@@ -25,10 +31,19 @@ def sort_desc(df): return df.sort_values(df.columns[1], ascending = False)
 def flat_list(l): return [item for sublist in l for item in sublist]
 
 
-def df_append(df, *args):
+def feature_value_to_df(features, values):
     df_dict = {}
-    for col, val in zip(df.columns, args): df_dict[col] = val
-    return df.append(pd.DataFrame.from_dict(df_dict), ignore_index = True)
+    for feature, value in zip(features, values): df_dict[feature] = value
+    df = pd.DataFrame.from_dict(df_dict)
+    return df
+
+
+def df_append(df, values):
+    df = feature_value_to_df(df.columns, values)
+    return df.append(df, ignore_index = True)
+
+
+def df_from_array(ary, columns, index = None): return pd.DataFrame(ary, columns=columns, index = index)
 
 
 def numpy_sample(arr, n_sample, axis=0):
