@@ -1,5 +1,6 @@
 from .utils import *
 from .pre_processing import *
+from .transform import *
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_string_dtype, is_numeric_dtype
@@ -7,10 +8,10 @@ from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 import random
 
-    from sklearn.model_selection import StratifiedShuffleSplit
-    from sklearn.utils.validation import _num_samples, check_array
-    from sklearn.model_selection._split import _approximate_mode, _validate_shuffle_split
-    from sklearn.utils import indexable, check_random_state, safe_indexing
+from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.utils.validation import _num_samples, check_array
+from sklearn.model_selection._split import _approximate_mode, _validate_shuffle_split
+from sklearn.utils import indexable, check_random_state, safe_indexing
 
 
 class TBDataset:
@@ -23,36 +24,35 @@ class TBDataset:
         self.x_tfms, self.y_tfms = x_tfms, y_tfms
 
     @classmethod
-    def from_Split(cls, df, y = None, y_field = None, tp = '_',  
-                     x_tst = None, time_feature = None, ratio = 0.2, 
+    def from_Split(cls, df, y = None, y_field = None, tp = '_',
+                    cats = None, x_tst = None, time_feature = None, ratio = 0.2, 
                      x_tfms = None, y_tfms = None, **kargs):
         """
         use sklearn split function to split data
         """
         df = df.copy()
-        
         if y is None: y = df[y_field]; df = df.drop(y_field, axis = 1)
-            
-        if tp != 'time series': x_trn, y_trn, x_val, y_val = stratify_split(df, y, x_tfms.cats, ratio)
+        if x_tfms is None: x_tfms = noop_transform; x_tfms.transform(df)
+        if cats is None: cats = x_tfms.cats
+        if tp != 'time series': x_trn, y_trn, x_val, y_val = stratify_split(df, y, cats, ratio)
         else: x_trn, y_trn, x_val, y_val = split_time_series(df, time_feature, ratio)
         
-        x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms = transform_data(x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms)
+        x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms = cls.transform_data(x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms)
+        
         return cls(x_trn, x_val, x_tst, x_tfms, y_trn, y_val, y_tfms)
     
     @staticmethod
-    def transform_data(x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms):
-        if x_tfms is not None: x_tfms = noop_transform
-        x_tfms.fit(x_trn)
+    def transform_data(x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms):        
         x_trn = x_tfms.transform(x_trn)
         x_val = x_tfms.transform(x_val)
         if x_tst is not None: x_tst = x_tfms.transform(x_tst)
-                
-        if y_tfms is not None: y_tfms = noop_transform
+        
+        if y_tfms is None: y_tfms = noop_transform
         y_tfms.fit(y_trn)
         y_trn = y_tfms.transform(y_trn)
         y_val = y_tfms.transform(y_val)
             
-        return x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms         
+        return x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms
             
     def val_permutation(self, features):
         """"

@@ -24,24 +24,24 @@ def change_xaxis_pos(top):
 
 
 class BaseViz:
-    def __init__(self, *kargs, **kargs):
+    def __init__(self, *args, **kargs):
         self.data = data
-        
+
     @classmethod
-    def from_learner(cls, *kargs, **kargs): pass  
+    def from_learner(cls, *args, **kargs): pass  
     
     @classmethod
-    def from_df(cls, *kargs, **kargs):
-        data = cls.calculate(*kargs, **kargs)
+    def from_df(cls, *args, **kargs):
+        data = cls.calculate(*args, **kargs)
         return cls(data)
 
     @classmethod
-    def from_series(cls, *kargs, **kargs): pass
+    def from_series(cls, *args, **kargs): pass
 
     @staticmethod
-    def calculate(*kargs, **kargs): pass
+    def calculate(*args, **kargs): pass
 
-    def plot(self, *kargs, **kagrs): pass
+    def plot(self, *args, **kagrs): pass
 
 
 class Missing(BaseViz):
@@ -150,7 +150,7 @@ class BoxnWhisker(BaseViz):
     
     @classmethod
     def from_series(cls, features, values):
-        data = cls.calculate(features, values))
+        data = cls.calculate(features, values)
         return cls(data, to_iter(features), to_iter(values))
 
     @staticmethod
