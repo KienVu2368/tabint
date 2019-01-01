@@ -24,14 +24,13 @@ class TBDataset:
         self.x_tfms, self.y_tfms = x_tfms, y_tfms
 
     @classmethod
-    def from_Split(cls, df, y = None, y_field = None, tp = '_',  
-                     x_tst = None, time_feature = None, ratio = 0.2, 
+    def from_Split(cls, df, y = None, y_field = None, tp = '_',
+                    cats = None, x_tst = None, time_feature = None, ratio = 0.2, 
                      x_tfms = None, y_tfms = None, **kargs):
         """
         use sklearn split function to split data
         """
         df = df.copy()
-        
         if y is None: y = df[y_field]; df = df.drop(y_field, axis = 1)
             
         if tp != 'time series': x_trn, y_trn, x_val, y_val = stratify_split(df, y, x_tfms.cats, ratio)
@@ -48,13 +47,13 @@ class TBDataset:
         x_trn = x_tfms.transform(x_trn)
         x_val = x_tfms.transform(x_val)
         if x_tst is not None: x_tst = x_tfms.transform(x_tst)
-                
-        if y_tfms is not None: y_tfms = noop_transform
+        
+        if y_tfms is None: y_tfms = noop_transform
         y_tfms.fit(y_trn)
         y_trn = y_tfms.transform(y_trn)
         y_val = y_tfms.transform(y_val)
             
-        return x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms         
+        return x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms
             
     def val_permutation(self, features):
         """"

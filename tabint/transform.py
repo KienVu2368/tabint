@@ -16,7 +16,7 @@ import pdb
 class TBStep:
     def __init__(self, **kargs): pass
     
-    def fit(self, **kargs): pass
+    def fit(self, *args,**kargs): pass
     
     def transform(self, df, **kargs): pass
     
@@ -58,7 +58,7 @@ class TBTransform:
     def pop(self, n_pop): self.steps.pop(n_pop)
 
 
-noop_transform = TBTransform([noop_step])
+noop_transform = TBTransform([noop_step()])
 
 
 class drop_features(TBStep):
@@ -92,11 +92,19 @@ class remove_outlier(TBStep):
             if is_numeric_dtype(value):
                 self.bw_dict[feature] = {}
                 Min, _, _, _, Max, _ = boxnwhisker_value(value)
-                inlier = np.logical_and(values >= Min, values <= Max)
+                inlier = np.logical_and(value >= Min, value <= Max)
                 mask = np.logical_and(mask, inlier)
         self.mask = mask
         
     def transform(self, df): return df[self.mask]
+
+
+def boxnwhisker_value(values):
+    Median = np.median(values)
+    Q1, Q3 = np.percentile(values, [25,75])
+    IQR = Q3 - Q1
+    Min, Max = Q1 - IQR*1.5, Q3 + IQR*1.5
+    return max(Min, np.min(values)), Q1, Median, Q3, min(Max,np.max(values)), IQR
 
 
 class subset(TBStep): 
@@ -155,7 +163,7 @@ class dummies(TBStep):
         
     def transform(self, df):
         df = df.copy()
-        df = pd.get_dummies(df, dummy_na=self.dummy_na)
+        df = pd.get_dummies(df, dummy_na=True)
         return df
 
 

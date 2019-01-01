@@ -126,7 +126,8 @@ class Shapley:
     
     @classmethod
     def from_Tree(cls, learner, ds, sample = 10000):
-        df = ds.remove_outlier(inplace = False)[0].sample(sample)
+        df = ds.remove_outlier(inplace = False)[0]
+        if sample < df.shape[0]: df = df.sample(sample)
         for c, v in df.items(): 
             if v.dtypes.name[:3] == 'int': df[c] = df[c].astype(np.float32)
         

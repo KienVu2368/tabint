@@ -26,7 +26,7 @@ def change_xaxis_pos(top):
 class BaseViz:
     def __init__(self, *karg, **kargs):
         self.data = data
-        
+
     @classmethod
     def from_learner(cls, *karg, **kargs): pass  
     
@@ -41,7 +41,7 @@ class BaseViz:
     @staticmethod
     def calculate(*karg, **kargs): pass
 
-    def plot(self, *kargs, **kagrs): pass
+    def plot(self, *args, **kagrs): pass
 
 
 class Missing(BaseViz):
