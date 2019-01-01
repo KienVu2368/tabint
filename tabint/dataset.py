@@ -1,5 +1,6 @@
 from .utils import *
 from .pre_processing import *
+from .transform import *
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_string_dtype, is_numeric_dtype
@@ -7,10 +8,10 @@ from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 import random
 
-    from sklearn.model_selection import StratifiedShuffleSplit
-    from sklearn.utils.validation import _num_samples, check_array
-    from sklearn.model_selection._split import _approximate_mode, _validate_shuffle_split
-    from sklearn.utils import indexable, check_random_state, safe_indexing
+from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.utils.validation import _num_samples, check_array
+from sklearn.model_selection._split import _approximate_mode, _validate_shuffle_split
+from sklearn.utils import indexable, check_random_state, safe_indexing
 
 
 class TBDataset:
@@ -34,14 +35,15 @@ class TBDataset:
         if y is None: y = df[y_field]; df = df.drop(y_field, axis = 1)
             
         if tp != 'time series': x_trn, y_trn, x_val, y_val = stratify_split(df, y, x_tfms.cats, ratio)
-        else: x_trn, y_trn, x_val, y_val = split_time_series(df, time_feature, ratio)
+        else: x_trn, y_trn, x_val, y_val = split_time_series(df, y, time_feature, ratio)
         
-        x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms = transform_data(x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms)
+        #x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms = cls.transform_data(x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms)
+        x_tfms, y_tfms = None, None 
         return cls(x_trn, x_val, x_tst, x_tfms, y_trn, y_val, y_tfms)
     
     @staticmethod
     def transform_data(x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms):
-        if x_tfms is not None: x_tfms = noop_transform
+        if x_tfms is None: x_tfms = noop_transform
         x_tfms.fit(x_trn)
         x_trn = x_tfms.transform(x_trn)
         x_val = x_tfms.transform(x_val)
@@ -170,10 +172,11 @@ def stratify_split(df, y, cats, ratio):
     return x_trn, y_trn, x_val, y_val
 
 
-def split_time_series(df, time_feature, ratio):
+def split_time_series(df, y, time_feature, ratio):
     df = df.copy()
     df = df.sort_values(by=time_feature, ascending=True)
-    split_id = int(df.shape*(1-ratio))
+    split_id = int(df.shape[0]*(1-ratio))
+    df.drop(time_feature, axis=1, inplace = True)
     x_trn, y_trn = df[:split_id], y[:split_id]
     x_val, y_val = df[split_id:], y[split_id:]
     return x_trn, y_trn, x_val, y_val

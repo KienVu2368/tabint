@@ -70,7 +70,7 @@ class LGBLearner(BaseLeaner):
                             callbacks = callbacks,
                             fobj = fobj,
                             feval = feval,
-                            early_stopping_rounds = early_stopping_rounds, 
+                            early_stopping_rounds = early_stopping_rounds,
                             verbose_eval = verbose_eval, **kargs)
 
         self.score.append(self.md.best_score)
