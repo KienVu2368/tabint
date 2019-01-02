@@ -32,18 +32,17 @@ class TBDataset:
         """
         df = df.copy()
         if y is None: y = df[y_field]; df = df.drop(y_field, axis = 1)
-            
-        if tp != 'time series': x_trn, y_trn, x_val, y_val = stratify_split(df, y, x_tfms.cats, ratio)
-        else: x_trn, y_trn, x_val, y_val = split_time_series(df, y, time_feature, ratio)
+        if x_tfms is None: x_tfms = noop_transform; x_tfms.transform(df)
+        if cats is None: cats = x_tfms.cats
+        if tp != 'time series': x_trn, y_trn, x_val, y_val = stratify_split(df, y, cats, ratio)
+        else: x_trn, y_trn, x_val, y_val = split_time_series(df, time_feature, ratio)
         
-        #x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms = cls.transform_data(x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms)
-        x_tfms, y_tfms = None, None 
+        x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms = cls.transform_data(x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms)
+        
         return cls(x_trn, x_val, x_tst, x_tfms, y_trn, y_val, y_tfms)
     
     @staticmethod
-    def transform_data(x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms):
-        if x_tfms is None: x_tfms = noop_transform
-        x_tfms.fit(x_trn)
+    def transform_data(x_trn, x_val, x_tst, y_trn, y_val, x_tfms, y_tfms):        
         x_trn = x_tfms.transform(x_trn)
         x_val = x_tfms.transform(x_val)
         if x_tst is not None: x_tst = x_tfms.transform(x_tst)
@@ -99,7 +98,7 @@ class TBDataset:
         step = drop_features(features).fit(self.x_trn)
         self.apply_step(step, features, inplace, tp)
             
-    def remove_outlier(self, features = None, inplace = True, tp = 'trn'):
+    def remove_outlier(self, features = None, inplace = True, tp = 'trn', return_mask = False):
         features = features or self.cons
         features = to_iter(features)
         mask_trn = self.get_mask_outlier(self.x_trn, features)
@@ -108,7 +107,9 @@ class TBDataset:
             self.x_trn, self.y_trn = self.x_trn[mask_trn], self.y_trn[mask_trn]
             self.x_val, self.y_val = self.x_val[mask_val], self.y_val[mask_val]
         else:
-            return (self.x_trn[mask_trn], self.y_trn[mask_trn]) if tp == 'trn' else (self.x_val[mask_val], self.y_val[mask_val])
+            res = [self.x_trn[mask_trn], self.y_trn[mask_trn]] if tp == 'trn' else [self.x_val[mask_val], self.y_val[mask_val]]
+            if return_mask: res.append(mask_trn if tp == 'trn' else mask_val)
+            return res
     
     def get_mask_outlier(self, df, features):
         step = remove_outlier(features)
@@ -171,11 +172,10 @@ def stratify_split(df, y, cats, ratio):
     return x_trn, y_trn, x_val, y_val
 
 
-def split_time_series(df, y, time_feature, ratio):
+def split_time_series(df, time_feature, ratio):
     df = df.copy()
     df = df.sort_values(by=time_feature, ascending=True)
-    split_id = int(df.shape[0]*(1-ratio))
-    df.drop(time_feature, axis=1, inplace = True)
+    split_id = int(df.shape*(1-ratio))
     x_trn, y_trn = df[:split_id], y[:split_id]
     x_val, y_val = df[split_id:], y[split_id:]
     return x_trn, y_trn, x_val, y_val

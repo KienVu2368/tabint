@@ -118,23 +118,33 @@ class Shapley:
     """
     SHAP value: https://github.com/slundberg/shap
     """
-    def __init__(self, explainer, shap_values, df, features):
+    def __init__(self, explainer, shap_values, df, df_disp, features):
         shap.initjs()
         self.explainer = explainer
         self.shap_values = shap_values
-        self.df, self.features = df, features        
+        self.df, self.df_disp, self.features = df, df_disp, features        
     
     @classmethod
-    def from_Tree(cls, learner, ds, sample = 10000):
-        df = ds.remove_outlier(inplace = False)[0]
-        if sample < df.shape[0]: df = df.sample(sample)
+    def from_Tree(cls, learner, ds, df_disp = None, sample = 10000, remove_outlier = True):
+
+        if remove_outlier: 
+            df, _, mask = ds.remove_outlier(inplace = False, return_mask = True)
+            #if df_disp is not None: df_disp = df_disp.copy(); df_disp = df_disp[mask]
+        else:
+            df = ds.x_trn
+
+        if sample < df.shape[0]:
+            samp = np.random.choice(df.shape[0], sample)
+            df = df.iloc[samp]
+            if df_disp is not None: df_disp = df_disp.iloc[samp]
+        
         for c, v in df.items(): 
             if v.dtypes.name[:3] == 'int': df[c] = df[c].astype(np.float32)
         
         explainer = shap.TreeExplainer(learner.md)
         shap_values = explainer.shap_values(df)
         features = df.columns
-        return cls(explainer, shap_values, df, features)
+        return cls(explainer, shap_values, df, df_disp, features)
 
     @classmethod
     def from_kernel(cls): None
@@ -160,10 +170,10 @@ class Shapley:
         self.interaction_values = self.explainer.shap_interaction_values(self.df.sample(sample))
         return shap.summary_plot(self.interaction_values, features = self.features)
     
-    def dependence_plot(self, col1, col2 = 'auto', alpha = 0.3, dot_size=50):
+    def dependence_plot(self, col1, col2 = 'auto', alpha = 0.3, x_jitter = 0.5, dot_size=50, df_disp= None):
         return shap.dependence_plot(ind = col1, interaction_index = col2, 
-                                    shap_values = self.shap_values, features = self.df, 
-                                    alpha = alpha, dot_size=dot_size)
+                                    shap_values = self.shap_values, features = self.df, display_features = self.df_disp or df_disp,
+                                    alpha = alpha, dot_size=dot_size, x_jitter = x_jitter)
 
 
 class Shapley_approx:
