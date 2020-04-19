@@ -1,6 +1,7 @@
 import random
 import matplotlib.pyplot as plt
 import seaborn as sns
+from .utils import *
 
 class Permutation_test:
     def __init__(self, x, y, func = np.mean, num_samples = 10000):
