@@ -94,3 +94,5 @@ def save_pickle(fn, obj):
 
 def load_pickle(fn):
     with open(fn, 'rb') as f: return pickle.load(f)
+
+def list_to_np_array(x): return np.array(x) if type(x) is list else x
