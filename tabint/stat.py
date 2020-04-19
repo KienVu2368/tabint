@@ -37,11 +37,11 @@ class Permutation_test:
         permutation_result_neg = np.abs(self.permutation_result[self.permutation_result < 0])
         
         print("Ground truth:", '%.2f' % self.ground_truth, '\n')
-        print("P value one side:", self.p_value_one_side, '\n')
-        print("P value two sides:", self.p_value_two_sides)
+        print("P-value one sided:", self.p_value_one_side, '\n')
+        print("P-value two sided:", self.p_value_two_sides)
 
         sns.distplot(permutation_result_pos, hist = False, kde_kws={"shade": True}, label = "pos")
         sns.distplot(permutation_result_neg, hist = False, kde_kws={"shade": True}, label = "neg")
-        plt.axvline(np.abs(self.ground_truth), 0, 1)
+        plt.axvline(np.abs(self.ground_truth), 0, 1, c = "Blue" if self.ground_truth >= 0 else "Orange")
         plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
         plt.show()   
