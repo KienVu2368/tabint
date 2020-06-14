@@ -1,6 +1,7 @@
 import random
 import matplotlib.pyplot as plt
 import seaborn as sns
+import tabint
 from .utils import *
 
 class Permutation_test:
