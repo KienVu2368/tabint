@@ -1,0 +1,22 @@
+name: tabint
+channels:
+- conda-forge
+- anaconda
+- default
+dependencies:
+- pandas
+- jupyter
+- numpy
+- scipy
+- matplotlib
+- seaborn
+- pdpbox
+- graphviz
+- shap
+- pip
+- scikit-learn
+- lightgbm
+- pip:
+  - nbdev
+  - sklearn-pandas
+  - treeinterpreter
