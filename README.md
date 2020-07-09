@@ -1,5 +1,5 @@
 # Welcom to Tabint
-> NB: this is on development process, many things we want to develop but have not yet done. If you want to contribute please feel free to do so.
+> NB: this is on development process, many things we want to develop but have not yet done. If you want to contribute please feel free to do so. We are according to nbdev style. So if you do contribute, please do so accordingly. For more information about nbdev style, please visit <a href='https://nbdev.fast.ai/'>nbdev document</a>
 
 
 ## Installing
