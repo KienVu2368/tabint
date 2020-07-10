@@ -42,21 +42,6 @@ description: "convert data into tabular dataset "
 </div>
 </div>
 
-<div class="output_wrapper">
-<div class="output">
-
-<div class="output_area">
-
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>The autoreload extension is already loaded. To reload it, use:
-  %reload_ext autoreload
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
 </div>
     {% endraw %}
 
@@ -85,7 +70,7 @@ description: "convert data into tabular dataset "
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="TBDataset" class="doc_header"><code>class</code> <code>TBDataset</code><a href="https://github.com/ddpham/tabint/tree/master/tabint/dataset.py#L22" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>TBDataset</code>(<strong><code>x_trn</code></strong>, <strong><code>x_val</code></strong>, <strong><code>x_tst</code></strong>, <strong><code>x_tfms</code></strong>, <strong><code>y_trn</code></strong>, <strong><code>y_val</code></strong>, <strong><code>y_tfms</code></strong>)</p>
+<h2 id="TBDataset" class="doc_header"><code>class</code> <code>TBDataset</code><a href="https://github.com/KienVu2368/tabint/tree/master/tabint/dataset.py#L22" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>TBDataset</code>(<strong><code>x_trn</code></strong>, <strong><code>x_val</code></strong>, <strong><code>x_tst</code></strong>, <strong><code>x_tfms</code></strong>, <strong><code>y_trn</code></strong>, <strong><code>y_val</code></strong>, <strong><code>y_tfms</code></strong>)</p>
 </blockquote>
 <p>Contain train, validation, test set</p>
 
@@ -117,7 +102,7 @@ description: "convert data into tabular dataset "
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="random_choose" class="doc_header"><code>random_choose</code><a href="https://github.com/ddpham/tabint/tree/master/tabint/dataset.py#L160" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>random_choose</code>(<strong><code>x</code></strong>, <strong><code>pct</code></strong>=<em><code>0.1</code></em>, <strong><code>ratio</code></strong>=<em><code>0.2</code></em>, <strong>**<code>kargs</code></strong>)</p>
+<h4 id="random_choose" class="doc_header"><code>random_choose</code><a href="https://github.com/KienVu2368/tabint/tree/master/tabint/dataset.py#L160" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>random_choose</code>(<strong><code>x</code></strong>, <strong><code>pct</code></strong>=<em><code>0.1</code></em>, <strong><code>ratio</code></strong>=<em><code>0.2</code></em>, <strong>**<code>kargs</code></strong>)</p>
 </blockquote>
 <p>static method for from_TBSplit, random choose rows from a group</p>
 
@@ -149,7 +134,7 @@ description: "convert data into tabular dataset "
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="stratify_split" class="doc_header"><code>stratify_split</code><a href="https://github.com/ddpham/tabint/tree/master/tabint/dataset.py#L168" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>stratify_split</code>(<strong><code>df</code></strong>, <strong><code>y</code></strong>, <strong><code>cats</code></strong>, <strong><code>ratio</code></strong>)</p>
+<h4 id="stratify_split" class="doc_header"><code>stratify_split</code><a href="https://github.com/KienVu2368/tabint/tree/master/tabint/dataset.py#L168" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>stratify_split</code>(<strong><code>df</code></strong>, <strong><code>y</code></strong>, <strong><code>cats</code></strong>, <strong><code>ratio</code></strong>)</p>
 </blockquote>
 
 </div>
@@ -180,7 +165,7 @@ description: "convert data into tabular dataset "
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="split_time_series" class="doc_header"><code>split_time_series</code><a href="https://github.com/ddpham/tabint/tree/master/tabint/dataset.py#L180" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>split_time_series</code>(<strong><code>df</code></strong>, <strong><code>time_feature</code></strong>, <strong><code>ratio</code></strong>)</p>
+<h4 id="split_time_series" class="doc_header"><code>split_time_series</code><a href="https://github.com/KienVu2368/tabint/tree/master/tabint/dataset.py#L180" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>split_time_series</code>(<strong><code>df</code></strong>, <strong><code>time_feature</code></strong>, <strong><code>ratio</code></strong>)</p>
 </blockquote>
 
 </div>
@@ -211,7 +196,7 @@ description: "convert data into tabular dataset "
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="split_by_cats" class="doc_header"><code>class</code> <code>split_by_cats</code><a href="https://github.com/ddpham/tabint/tree/master/tabint/dataset.py#L189" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>split_by_cats</code>(<strong><code>n_splits</code></strong>=<em><code>10</code></em>, <strong><code>test_size</code></strong>=<em><code>None</code></em>, <strong><code>train_size</code></strong>=<em><code>None</code></em>, <strong><code>random_state</code></strong>=<em><code>None</code></em>) :: <code>StratifiedShuffleSplit</code></p>
+<h2 id="split_by_cats" class="doc_header"><code>class</code> <code>split_by_cats</code><a href="https://github.com/KienVu2368/tabint/tree/master/tabint/dataset.py#L189" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>split_by_cats</code>(<strong><code>n_splits</code></strong>=<em><code>10</code></em>, <strong><code>test_size</code></strong>=<em><code>None</code></em>, <strong><code>train_size</code></strong>=<em><code>None</code></em>, <strong><code>random_state</code></strong>=<em><code>None</code></em>) :: <code>StratifiedShuffleSplit</code></p>
 </blockquote>
 <p>Stratified ShuffleSplit cross-validator</p>
 <p>Provides train/test indices to split data in train/test sets.</p>
@@ -296,6 +281,7 @@ TRAIN: [0 5 1] TEST: [3 4 2]</p>
 Converted 01_pre-processing.ipynb.
 Converted 03_transform.ipynb.
 Converted 04_dataset.ipynb.
+Converted 05_import.ipynb.
 Converted index.ipynb.
 </pre>
 </div>
