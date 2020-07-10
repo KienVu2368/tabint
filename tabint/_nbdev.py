@@ -44,10 +44,11 @@ index = {"na_rm": "00_utils.ipynb",
 modules = ["utils.py",
            "pre_processing.py",
            "transform.py",
-           "dataset.py"]
+           "dataset.py",
+           "import.py"]
 
-doc_url = "https://ddpham.github.io/tabint/"
+doc_url = "https://KienVu2368.github.io/tabint/"
 
-git_url = "https://github.com/ddpham/tabint/tree/master/"
+git_url = "https://github.com/KienVu2368/tabint/tree/master/"
 
 def custom_doc_links(name): return None
