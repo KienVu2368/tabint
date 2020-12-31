@@ -29,7 +29,7 @@ class powerbi:
     def __init__(self, data_source = None, catalog = None, user_name = None, password = None):
         self.data_source, self.catalog, self.user_name, self.password = data_source, catalog, user_name, password
         self.load_assemblies()
-        self.connection = "Provider=MSOLAP;Data Source=" + data_source + ";Initial Catalog='';"
+        self.connection = f"Provider=MSOLAP;Data Source={self.data_source};Initial Catalog={self.catalog};User ID={self.user_name};Password={self.password};"
 
     @classmethod
     def from_data_source(cls, data_source): return cls(data_source)
